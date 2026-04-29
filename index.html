@@ -2,79 +2,78 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كاشير شاهي وليف - الإصدار النهائي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كاشير شاهي وليف - نظام التمدد الحر</title>
     <style>
         :root { 
             --primary: #4f46e5; --dark: #111827; --bg: #e5e7eb;
             --maroon: #800000; --success: #059669; --warning: #d97706; --danger: #dc2626;
-            --shadow-out: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff;
-            --shadow-in: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+            --shadow-out: 6px 6px 12px #bebebe, -6px -6px 12px #ffffff;
+            --shadow-in: inset 5px 5px 10px #bebebe, inset -5px -5px 10px #ffffff;
         }
         
-        /* تثبيت طول الصفحة على مقاس الشاشة بالضبط */
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        /* السماح للصفحة بالتمدد الطولي */
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
 
-        .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 0 15px; height: 50px; flex-shrink: 0; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 0 20px; height: 55px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         
-        .tabs-bar { display: flex; background: #d1d5db; padding: 5px 10px 0; gap: 5px; overflow-x: auto; flex-shrink: 0; }
-        .tab { padding: 8px 12px; border-radius: 10px 10px 0 0; background: #9ca3af; cursor: pointer; font-weight: bold; font-size: 11px; border: none; white-space: nowrap; }
-        .tab.active { background: var(--bg); color: var(--maroon); box-shadow: 0 -2px 4px rgba(0,0,0,0.1); }
+        .tabs-bar { display: flex; background: #d1d5db; padding: 5px 15px 0; gap: 8px; overflow-x: auto; position: sticky; top: 55px; z-index: 999; }
+        .tab { padding: 10px 20px; border-radius: 12px 12px 0 0; background: #9ca3af; cursor: pointer; font-weight: bold; font-size: 13px; border: none; white-space: nowrap; transition: 0.3s; }
+        .tab.active { background: var(--bg); color: var(--maroon); box-shadow: 0 -3px 6px rgba(0,0,0,0.1); }
 
-        .sub-header { background: #f3f4f6; text-align: center; padding: 5px; font-weight: bold; color: var(--maroon); border-bottom: 2px solid var(--maroon); flex-shrink: 0; font-size: 14px; }
+        .sub-header { background: #f3f4f6; text-align: center; padding: 10px; font-weight: bold; color: var(--maroon); border-bottom: 3px solid var(--maroon); position: sticky; top: 98px; z-index: 998; }
 
-        .main-content { display: flex; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
+        /* توزيع المحتوى ليدعم التمدد */
+        .main-content { display: flex; flex-wrap: wrap; padding: 15px; gap: 20px; align-items: flex-start; }
 
         /* منطقة الأصناف */
-        .pos-container { flex: 1.5; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow-out); padding: 10px; border: 2px solid var(--maroon); display: flex; flex-direction: column; overflow: hidden; }
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; overflow-y: auto; padding: 5px; }
-        .product { background: white; padding: 12px 5px; border-radius: 15px; text-align: center; cursor: pointer; box-shadow: var(--shadow-out); transition: 0.1s; border: 1px solid #eee; }
+        .pos-container { flex: 1.5; min-width: 320px; background: var(--bg); border-radius: 25px; box-shadow: var(--shadow-out); padding: 15px; border: 2px solid var(--maroon); }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 12px; padding: 10px; }
+        .product { background: white; padding: 20px 5px; border-radius: 20px; text-align: center; cursor: pointer; box-shadow: var(--shadow-out); transition: 0.2s; border: 1px solid #eee; }
         .product:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
 
-        /* منطقة السلة - مفتاح الحل هنا */
+        /* منطقة السلة - تمدد تلقائي (Auto Height) */
         .cart-section { 
-            width: 320px; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow-out); 
-            padding: 12px; display: flex; flex-direction: column; overflow: hidden;
-            max-height: 100%; /* تضمن عدم خروجها عن الشاشة */
+            flex: 1; min-width: 340px; background: var(--bg); border-radius: 25px; 
+            box-shadow: var(--shadow-out); padding: 20px; display: flex; flex-direction: column;
+            height: auto; /* تتمدد مع المحتوى */
         }
 
         .cart-items { 
-            flex: 1; /* تأخذ كل المساحة المتاحة بين العنوان والإجمالي */
-            overflow-y: auto; margin-bottom: 10px; border-radius: 12px; 
-            box-shadow: var(--shadow-in); padding: 8px; background: #f9fafb; 
+            margin-bottom: 20px; border-radius: 15px; 
+            box-shadow: var(--shadow-in); padding: 12px; background: #f9fafb;
+            min-height: 100px; /* أقل ارتفاع لو كانت فارغة */
         }
 
-        .cart-row { background: white; padding: 8px; border-radius: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.05); font-size: 13px; }
+        .cart-row { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* تذييل السلة - ثابت دائماً في الأسفل */
-        .cart-footer { flex-shrink: 0; margin-top: auto; }
-
-        .summary-box { background: var(--bg); padding: 8px; border-radius: 15px; text-align: center; box-shadow: var(--shadow-in); margin-bottom: 10px; border-right: 4px solid var(--maroon); }
+        /* منطقة الإجمالي والأزرار (تتبع السلة دائماً) */
+        .summary-box { background: var(--bg); padding: 15px; border-radius: 20px; text-align: center; box-shadow: var(--shadow-in); margin-bottom: 15px; border-right: 5px solid var(--maroon); }
         
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn { padding: 12px 5px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; box-shadow: var(--shadow-out); font-size: 12px; }
-        .btn:active { box-shadow: var(--shadow-in); transform: translateY(1px); }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn { padding: 16px; border: none; border-radius: 18px; color: white; font-weight: bold; cursor: pointer; box-shadow: var(--shadow-out); font-size: 15px; transition: 0.1s; }
+        .btn:active { box-shadow: var(--shadow-in); transform: translateY(2px); }
         
         .btn-cash { background: var(--success); }
         .btn-card { background: var(--primary); }
         .btn-hold { background: var(--warning); }
         .btn-void { background: var(--danger); }
 
-        .qty-badge { background: var(--maroon); color: white; padding: 1px 5px; border-radius: 6px; font-size: 10px; margin-left: 5px; }
+        .qty-badge { background: var(--maroon); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 8px; }
 
-        /* تحسين للموبايل */
+        /* تحسين العرض على الجوال */
         @media (max-width: 768px) {
-            .main-content { flex-direction: column; overflow-y: auto; }
-            .cart-section { width: 100%; height: 400px; flex-shrink: 0; }
-            body { overflow-y: auto; height: auto; }
+            .main-content { flex-direction: column; }
+            .cart-section { width: 100%; min-width: unset; }
         }
     </style>
 </head>
 <body>
 
     <div class="topbar">
-        <h3 style="margin:0; font-size: 16px;">🍃 شاهي وليف</h3>
-        <span id="order-label" style="font-size: 11px;">الأساسية</span>
+        <h3 style="margin:0;">🍃 شاهي وليف</h3>
+        <div id="order-info" style="font-size: 13px; opacity: 0.8;">الفاتورة الرئيسية</div>
     </div>
 
     <div class="tabs-bar" id="tabs-container"></div>
@@ -87,23 +86,21 @@
         </div>
 
         <div class="cart-section">
-            <h4 style="margin:0 0 8px 0; color: var(--maroon); font-size: 14px;">🛒 طلبات الوليـف</h4>
+            <h4 style="margin:0 0 15px 0; color: var(--maroon); font-size: 18px;">🛒 طلبات الوليـف</h4>
             
             <div id="cart-list" class="cart-items">
                 </div>
             
-            <div class="cart-footer">
-                <div class="summary-box">
-                    <small style="font-size: 10px;">الإجمالي الضريبي</small>
-                    <div id="total" style="font-size: 1.5rem; font-weight: 900; color: var(--maroon);">0.00</div>
-                </div>
+            <div class="summary-box">
+                <small>الإجمالي النهائي (شامل الضريبة)</small>
+                <div id="total" style="font-size: 2.2rem; font-weight: 900; color: var(--maroon);">0.00</div>
+            </div>
 
-                <div class="btn-grid">
-                    <button class="btn btn-cash" onclick="pay('كاش')">💵 كاش</button>
-                    <button class="btn btn-card" onclick="pay('شبكة')">💳 شبكة</button>
-                    <button class="btn btn-hold" onclick="holdInvoice()">⏸ تعليق</button>
-                    <button class="btn btn-void" onclick="clearCart()">✖ كنسلة</button>
-                </div>
+            <div class="btn-grid">
+                <button class="btn btn-cash" onclick="pay('كاش')">💵 كاش</button>
+                <button class="btn btn-card" onclick="pay('شبكة')">💳 شبكة</button>
+                <button class="btn btn-hold" onclick="holdInvoice()">⏸ تعليق</button>
+                <button class="btn btn-void" onclick="clearCart()">✖ كنسلة</button>
             </div>
         </div>
     </div>
@@ -112,7 +109,7 @@
     let products = [
         {name:"شاي كرك", price:3}, {name:"شاي نعناع", price:2}, 
         {name:"فطيرة جبن", price:5}, {name:"جاكارو", price:10},
-        {name:"ماء", price:1}, {name:"كيكة", price:7}
+        {name:"شاي أخضر", price:2.5}, {name:"ماء منعش", price:1}
     ];
 
     let invoices = { 'main': [] };
@@ -122,8 +119,8 @@
     function renderProducts() {
         document.getElementById('p-grid').innerHTML = products.map((p, i) => `
             <div class="product" onclick="addToCart(${i})">
-                <strong style="font-size:12px;">${p.name}</strong><br>
-                <b style="font-size:11px; color:var(--maroon)">${p.price} ر.س</b>
+                <strong>${p.name}</strong><br>
+                <b>${p.price} ر.س</b>
             </div>
         `).join('');
     }
@@ -144,9 +141,9 @@
         list.innerHTML = cart.length ? cart.map((item, i) => `
             <div class="cart-row">
                 <span><span class="qty-badge">${item.qty}</span> ${item.name}</span>
-                <button onclick="removeItem(${i})" style="border:none; color:var(--danger); background:none; font-weight:bold; cursor:pointer; font-size:14px;">✖</button>
+                <button onclick="removeItem(${i})" style="border:none; color:var(--danger); background:none; font-weight:bold; cursor:pointer; font-size:16px;">✖</button>
             </div>
-        `).join('') : '<p style="text-align:center; color:#999; font-size:11px; margin-top:15px;">السلة فارغة</p>';
+        `).join('') : '<p style="text-align:center; color:#999; padding:20px;">أضف أصنافاً للبدء..</p>';
         
         let total = cart.reduce((s, i) => s + (i.price * i.qty), 0) * 1.15;
         document.getElementById('total').innerText = total.toFixed(2);
@@ -170,7 +167,7 @@
 
     function switchInvoice(id) {
         activeInvoice = id;
-        document.getElementById('order-label').innerText = id === 'main' ? 'الأساسية' : 'طلب #' + id.split('-')[1];
+        document.getElementById('order-info').innerText = id === 'main' ? 'الفاتورة الرئيسية' : 'طلب معلق #' + id.split('-')[1];
         updateUI();
     }
 
@@ -178,7 +175,7 @@
         let container = document.getElementById('tabs-container');
         container.innerHTML = Object.keys(invoices).map(id => `
             <div class="tab ${activeInvoice === id ? 'active' : ''}" onclick="switchInvoice('${id}')">
-                ${id === 'main' ? 'الأساسية' : 'طلب ' + id.split('-')[1]}
+                ${id === 'main' ? 'الرئيسية' : 'طلب ' + id.split('-')[1]}
                 ${invoices[id].length > 0 ? '🟢' : ''}
             </div>
         `).join('');
@@ -186,13 +183,13 @@
 
     function pay(type) {
         if(invoices[activeInvoice].length === 0) return;
-        alert(`تم الدفع ${type}`);
+        alert(`تم تنفيذ العملية بنجاح عبر ${type}`);
         if(activeInvoice === 'main') { invoices['main'] = []; } 
         else { delete invoices[activeInvoice]; activeInvoice = 'main'; }
         updateUI();
     }
 
-    function clearCart() { if(confirm("تفريغ؟")) { invoices[activeInvoice] = []; updateUI(); } }
+    function clearCart() { if(confirm("تفريغ الفاتورة؟")) { invoices[activeInvoice] = []; updateUI(); } }
     
     renderProducts();
     updateUI();
