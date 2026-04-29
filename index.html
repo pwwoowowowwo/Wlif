@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كاشير شاهي وليف - نظام التصنيفات</title>
+    <title>كاشير شاهي وليف - الإصدار المالي المطور</title>
     <style>
         :root { 
             --primary: #4f46e5; --dark: #111827; --bg: #e5e7eb;
@@ -14,48 +14,51 @@
         
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
 
-        .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 0 20px; height: 55px; position: sticky; top: 0; z-index: 1000; }
-        .tabs-bar { display: flex; background: #d1d5db; padding: 5px 15px 0; gap: 8px; overflow-x: auto; position: sticky; top: 55px; z-index: 999; }
+        .topbar { display: flex; justify-content: center; align-items: center; background: var(--dark); color: white; height: 75px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .topbar h1 { margin: 0; font-size: 28px; font-weight: 900; }
+        .order-status { position: absolute; left: 20px; font-size: 13px; opacity: 0.7; }
+
+        .tabs-bar { display: flex; background: #d1d5db; padding: 5px 15px 0; gap: 8px; overflow-x: auto; position: sticky; top: 75px; z-index: 999; }
         .tab { padding: 10px 20px; border-radius: 12px 12px 0 0; background: #9ca3af; cursor: pointer; font-weight: bold; font-size: 13px; border: none; white-space: nowrap; }
         .tab.active { background: var(--bg); color: var(--maroon); box-shadow: 0 -3px 6px rgba(0,0,0,0.1); }
 
-        /* شريط التصنيفات الجديد */
-        .categories-bar { 
-            display: flex; gap: 10px; padding: 15px; overflow-x: auto; 
-            background: var(--bg); position: sticky; top: 98px; z-index: 997;
-            border-bottom: 2px solid var(--maroon);
-        }
-        .cat-btn { 
-            padding: 10px 20px; border-radius: 15px; border: none; background: var(--bg); 
-            box-shadow: var(--shadow-out); cursor: pointer; font-weight: bold; color: var(--dark);
-            white-space: nowrap; transition: 0.2s;
-        }
+        .categories-bar { display: flex; gap: 10px; padding: 15px; overflow-x: auto; background: var(--bg); position: sticky; top: 118px; z-index: 997; border-bottom: 2px solid var(--maroon); }
+        .cat-btn { padding: 10px 20px; border-radius: 15px; border: none; background: var(--bg); box-shadow: var(--shadow-out); cursor: pointer; font-weight: bold; color: var(--dark); white-space: nowrap; transition: 0.2s; }
         .cat-btn.active { box-shadow: var(--shadow-in); color: var(--maroon); }
 
         .main-content { display: flex; flex-wrap: wrap; padding: 15px; gap: 20px; align-items: flex-start; }
 
         .pos-container { flex: 1.5; min-width: 320px; background: var(--bg); border-radius: 25px; box-shadow: var(--shadow-out); padding: 15px; border: 2px solid var(--maroon); }
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 12px; padding: 10px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; padding: 10px; }
         
-        .product { background: white; padding: 20px 5px; border-radius: 20px; text-align: center; cursor: pointer; box-shadow: var(--shadow-out); transition: 0.2s; border: 1px solid #eee; }
+        /* تصميم الصنف مع السعر والرمز */
+        .product { background: white; padding: 18px 5px; border-radius: 20px; text-align: center; cursor: pointer; box-shadow: var(--shadow-out); transition: 0.2s; border: 1px solid #eee; }
         .product:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
+        .product strong { display: block; margin-bottom: 5px; font-size: 14px; }
+        .product b { color: var(--maroon); font-size: 13px; }
 
-        .cart-section { flex: 1; min-width: 340px; background: var(--bg); border-radius: 25px; box-shadow: var(--shadow-out); padding: 20px; display: flex; flex-direction: column; height: auto; }
-        .cart-items { margin-bottom: 20px; border-radius: 15px; box-shadow: var(--shadow-in); padding: 12px; background: #f9fafb; min-height: 100px; }
-        .cart-row { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
-
-        .summary-box { background: var(--bg); padding: 15px; border-radius: 20px; text-align: center; box-shadow: var(--shadow-in); margin-bottom: 15px; border-right: 5px solid var(--maroon); }
+        .cart-section { flex: 1; min-width: 340px; background: var(--bg); border-radius: 25px; box-shadow: var(--shadow-out); padding: 20px; display: flex; flex-direction: column; }
+        .cart-items { margin-bottom: 15px; border-radius: 15px; box-shadow: var(--shadow-in); padding: 10px; background: #f9fafb; min-height: 120px; }
         
+        /* سطر الطلب مع السعر والرمز */
+        .cart-row { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+        .item-info { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .item-price { font-weight: bold; color: var(--maroon); font-size: 13px; }
+
+        /* صندوق الإجمالي المطور */
+        .summary-box { background: var(--bg); padding: 15px; border-radius: 20px; box-shadow: var(--shadow-in); margin-bottom: 15px; border-right: 5px solid var(--maroon); }
+        .summary-line { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #555; }
+        .summary-total { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; font-weight: 900; font-size: 22px; color: var(--maroon); }
+
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .btn { padding: 16px; border: none; border-radius: 18px; color: white; font-weight: bold; cursor: pointer; box-shadow: var(--shadow-out); font-size: 15px; }
         .btn:active { box-shadow: var(--shadow-in); }
-        
         .btn-cash { background: var(--success); }
         .btn-card { background: var(--primary); }
         .btn-hold { background: var(--warning); }
         .btn-void { background: var(--danger); }
 
-        .qty-badge { background: var(--maroon); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 8px; }
+        .qty-badge { background: var(--maroon); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 
         @media (max-width: 768px) { .main-content { flex-direction: column; } .cart-section { width: 100%; } }
     </style>
@@ -63,8 +66,8 @@
 <body>
 
     <div class="topbar">
-        <h3 style="margin:0;">🍃 شاهي وليف</h3>
-        <div id="order-info" style="font-size: 13px; opacity: 0.8;">الفاتورة الرئيسية</div>
+        <div id="order-info" class="order-status">الرئيسية</div>
+        <h1>🍃 شاهي وليف</h1>
     </div>
 
     <div class="tabs-bar" id="tabs-container"></div>
@@ -82,12 +85,22 @@
         </div>
 
         <div class="cart-section">
-            <h4 style="margin:0 0 15px 0; color: var(--maroon); font-size: 18px;">🛒 طلبات الوليـف</h4>
+            <h4 style="margin:0 0 15px 0; color: var(--maroon);">🛒 الفاتورة الحالية</h4>
             <div id="cart-list" class="cart-items"></div>
             
             <div class="summary-box">
-                <small>الإجمالي النهائي (شامل الضريبة)</small>
-                <div id="total" style="font-size: 2.2rem; font-weight: 900; color: var(--maroon);">0.00</div>
+                <div class="summary-line">
+                    <span>المجموع:</span>
+                    <span><span id="subtotal">0.00</span> ر.س</span>
+                </div>
+                <div class="summary-line">
+                    <span>الضريبة (15%):</span>
+                    <span><span id="tax">0.00</span> ر.س</span>
+                </div>
+                <div class="summary-line summary-total">
+                    <span>الإجمالي:</span>
+                    <span><span id="total">0.00</span> ر.س</span>
+                </div>
             </div>
 
             <div class="btn-grid">
@@ -100,15 +113,13 @@
     </div>
 
 <script>
-    // إضافة تصنيف لكل صنف
     let products = [
         {name:"كرك وليف", price:3, cat:"شاهي"},
         {name:"شاي نعناع", price:2, cat:"شاهي"},
         {name:"فطيرة جبن", price:5, cat:"مخبوزات"},
         {name:"كرواسون", price:7, cat:"مخبوزات"},
         {name:"جاكارو", price:10, cat:"ألعاب"},
-        {name:"مونوبولي", price:15, cat:"ألعاب"},
-        {name:"ماء", price:1, cat:"شاهي"}
+        {name:"مونوبولي", price:15, cat:"ألعاب"}
     ];
 
     let currentCat = "الكل";
@@ -119,13 +130,12 @@
     function renderProducts() {
         let grid = document.getElementById('p-grid');
         let filtered = currentCat === "الكل" ? products : products.filter(p => p.cat === currentCat);
-        
-        grid.innerHTML = filtered.map((p, i) => {
-            // نمرر الـ index الأصلي للمنتج في مصفوفة products الأصلية
-            let originalIndex = products.findIndex(item => item.name === p.name);
+        grid.innerHTML = filtered.map((p) => {
+            let idx = products.findIndex(item => item.name === p.name);
             return `
-                <div class="product" onclick="addToCart(${originalIndex})">
-                    <strong>${p.name}</strong><br><b>${p.price} ر.س</b>
+                <div class="product" onclick="addToCart(${idx})">
+                    <strong>${p.name}</strong>
+                    <b>${p.price.toFixed(2)} ر.س</b>
                 </div>
             `;
         }).join('');
@@ -133,7 +143,6 @@
 
     function filterCat(cat) {
         currentCat = cat;
-        // تحديث شكل الأزرار
         document.querySelectorAll('.cat-btn').forEach(btn => {
             btn.classList.remove('active');
             if(btn.innerText.includes(cat) || (cat === "الكل" && btn.innerText === "الكل")) btn.classList.add('active');
@@ -153,18 +162,30 @@
     function updateUI() {
         let list = document.getElementById('cart-list');
         let cart = invoices[activeInvoice];
+        
         list.innerHTML = cart.length ? cart.map((item, i) => `
             <div class="cart-row">
-                <span><span class="qty-badge">${item.qty}</span> ${item.name}</span>
-                <button onclick="removeItem(${i})" style="border:none; color:var(--danger); background:none; font-weight:bold; cursor:pointer;">✖</button>
+                <div class="item-info">
+                    <span class="qty-badge">${item.qty}</span>
+                    <span>${item.name}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="item-price">${(item.price * item.qty).toFixed(2)} ر.س</span>
+                    <button onclick="removeItem(${i})" style="border:none; color:var(--danger); background:none; font-weight:bold; cursor:pointer;">✖</button>
+                </div>
             </div>
-        `).join('') : '<p style="text-align:center; color:#999; padding:20px;">اختر من القائمة..</p>';
-        let total = cart.reduce((s, i) => s + (i.price * i.qty), 0) * 1.15;
+        `).join('') : '<p style="text-align:center; color:#999; padding:20px;">أضف طلباً..</p>';
+        
+        let subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        let tax = subtotal * 0.15;
+        let total = subtotal + tax;
+
+        document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+        document.getElementById('tax').innerText = tax.toFixed(2);
         document.getElementById('total').innerText = total.toFixed(2);
         updateTabs();
     }
 
-    // باقي الوظائف (مسح، حذف، تعليق) كما هي في التصميم المعتمد...
     function removeItem(idx) {
         let cart = invoices[activeInvoice];
         if (cart[idx].qty > 1) { cart[idx].qty--; } 
@@ -182,7 +203,7 @@
 
     function switchInvoice(id) {
         activeInvoice = id;
-        document.getElementById('order-info').innerText = id === 'main' ? 'الفاتورة الرئيسية' : 'طلب معلق #' + id.split('-')[1];
+        document.getElementById('order-info').innerText = id === 'main' ? 'الرئيسية' : 'طلب #' + id.split('-')[1];
         updateUI();
     }
 
@@ -198,7 +219,7 @@
 
     function pay(type) {
         if(invoices[activeInvoice].length === 0) return;
-        alert(`تم تنفيذ العملية ${type}`);
+        alert(`تم الدفع ${type}`);
         if(activeInvoice === 'main') { invoices['main'] = []; } 
         else { delete invoices[activeInvoice]; activeInvoice = 'main'; }
         updateUI();
