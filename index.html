@@ -1,230 +1,64 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام شاهي وليف المتكامل</title>
-    <style>
-        :root { 
-            --primary: #4f46e5; --dark: #111827; --bg: #e5e7eb;
-            --maroon: #800000; --success: #059669; --warning: #d97706; --danger: #dc2626;
-            --shadow-out: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff;
-            --shadow-in: inset 5px 5px 10px #bebebe, inset -5px -5px 10px #ffffff;
-        }
-        
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; overflow-x: hidden; }
-
-        /* الترويسة */
-        .header-section { position: sticky; top: 0; z-index: 1000; background: var(--bg); }
-        .topbar { display: flex; justify-content: center; align-items: center; background: var(--dark); color: white; height: 60px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .topbar h1 { margin: 0; font-size: 24px; font-weight: 900; }
-
-        /* شريط التنقل الجديد بالرموز */
-        .navbar { display: flex; justify-content: space-around; padding: 10px; background: var(--bg); box-shadow: var(--shadow-out); margin: 10px; border-radius: 20px; }
-        .nav-item { border: none; background: none; cursor: pointer; padding: 10px; border-radius: 15px; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--dark); min-width: 60px; }
-        .nav-item i { font-size: 20px; }
-        .nav-item span { font-size: 10px; font-weight: bold; }
-        .nav-item.active { box-shadow: var(--shadow-in); color: var(--maroon); }
-
-        /* إدارة الصفحات */
-        .page { display: none; padding: 15px; animation: fadeIn 0.4s; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* تصميم الكاشير (نفس روحك المفضلة) */
-        .cashier-layout { display: flex; flex-wrap: wrap; gap: 20px; }
-        .pos-container { flex: 1.5; min-width: 320px; background: var(--bg); border-radius: 25px; box-shadow: var(--shadow-out); padding: 15px; border: 2px solid var(--maroon); }
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
-        .product { background: white; padding: 15px 5px; border-radius: 20px; text-align: center; cursor: pointer; box-shadow: var(--shadow-out); border: 1px solid #eee; }
-        .product:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
-
-        .cart-section { flex: 1; min-width: 340px; background: var(--bg); border-radius: 25px; box-shadow: var(--shadow-out); padding: 20px; border: 1px solid #ccc; }
-        .cart-items { margin-bottom: 15px; border-radius: 15px; box-shadow: var(--shadow-in); padding: 10px; background: #f9fafb; min-height: 100px; }
-        .cart-row { background: white; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
-
-        .summary-box { background: var(--bg); padding: 15px; border-radius: 20px; box-shadow: var(--shadow-in); margin-bottom: 15px; border-right: 5px solid var(--maroon); }
-        .summary-line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-        .total-line { font-weight: 900; font-size: 20px; color: var(--maroon); border-top: 1px solid #ccc; margin-top: 8px; padding-top: 8px; }
-
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { padding: 14px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; box-shadow: var(--shadow-out); }
-        .btn:active { box-shadow: var(--shadow-in); }
-        
-        /* الجداول للصفحات الأخرى */
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; box-shadow: var(--shadow-out); }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
-        th { background: var(--maroon); color: white; }
-
-        .qty-badge { background: var(--maroon); color: white; padding: 1px 6px; border-radius: 8px; font-size: 11px; }
-
-        @media (max-width: 768px) { .cashier-layout { flex-direction: column; } }
-    </style>
-</head>
-<body>
-
-<div class="header-section">
-    <div class="topbar"><h1>🍃 شاهي وليف</h1></div>
-    
-    <nav class="navbar">
-        <button class="nav-item active" onclick="showPage('cashier', this)"><i>🏪</i><span>الكاشير</span></button>
-        <button class="nav-item" onclick="showPage('sales', this)"><i>💰</i><span>المبيعات</span></button>
-        <button class="nav-item" onclick="showPage('purchases', this)"><i>🛒</i><span>المشتريات</span></button>
-        <button class="nav-item" onclick="showPage('history', this)"><i>📄</i><span>الفواتير</span></button>
-        <button class="nav-item" onclick="showPage('reports', this)"><i>📊</i><span>التقارير</span></button>
-    </nav>
-</div>
-
-<div id="cashier" class="page active">
-    <div class="cashier-layout">
-        <div class="pos-container">
-            <div id="cat-tabs" style="margin-bottom:15px; display:flex; gap:10px; overflow-x:auto;">
-                <button onclick="renderProducts('الكل')" style="padding:8px 15px; border-radius:10px; border:none; box-shadow:var(--shadow-out); cursor:pointer;">الكل</button>
-                </div>
-            <div class="products-grid" id="p-grid"></div>
-        </div>
-
-        <div class="cart-section">
-            <h4 style="margin:0 0 10px 0; color:var(--maroon)">🛒 سلة الطلبات</h4>
-            <div id="cart-list" class="cart-items"></div>
-            <div class="summary-box" id="summary-box">
-                <div class="summary-line"><span>المجموع:</span><span id="subtotal">0.00 ر.س</span></div>
-                <div class="summary-line"><span>الضريبة:</span><span id="tax">0.00 ر.س</span></div>
-                <div class="summary-line total-line"><span>الإجمالي:</span><span id="total">0.00 ر.س</span></div>
-            </div>
-            <div class="btn-grid">
-                <button class="btn" style="background:var(--success)" onclick="processPayment('كاش')">كاش</button>
-                <button class="btn" style="background:var(--primary)" onclick="processPayment('شبكة')">شبكة</button>
-                <button class="btn" style="background:var(--warning)" onclick="alert('تم التعليق')">تعليق</button>
-                <button class="btn" style="background:var(--danger)" onclick="clearCart()">مسح</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="history" class="page">
-    <h3 style="color:var(--maroon)">📄 سجل الفواتير المنفذة</h3>
-    <table id="history-table">
-        <thead>
-            <tr>
-                <th>رقم الفاتورة</th>
-                <th>الوقت</th>
-                <th>الإجمالي</th>
-                <th>الدفع</th>
-            </tr>
-        </thead>
-        <tbody id="history-body"></tbody>
-    </table>
-</div>
-
-<div id="reports" class="page">
-    <h3 style="color:var(--maroon)">📊 تقرير مبيعات اليوم</h3>
-    <div class="summary-box" style="display:flex; justify-content:space-around; text-align:center;">
-        <div><h4>عدد الفواتير</h4><p id="rep-count">0</p></div>
-        <div><h4>إجمالي المبيعات</h4><p id="rep-total">0.00 ر.س</p></div>
-    </div>
-</div>
-
 <script>
-    // البيانات الأساسية (تُحفظ في المتصفح)
+    // 1. تأكد أن كل صنف له cat (تصنيف) يطابق الموجود في أزرار التنقل
     let products = [
-        {name:"شاي كرك", price:3, cat:"شاهي"},
+        {name:"كرك وليف", price:3, cat:"شاهي"},
+        {name:"شاي نعناع", price:2, cat:"شاهي"},
         {name:"فطيرة جبن", price:5, cat:"مخبوزات"},
-        {name:"جاكارو", price:10, cat:"ألعاب"}
+        {name:"كرواسون", price:7, cat:"مخبوزات"},
+        {name:"جاكارو", price:10, cat:"ألعاب"},
+        {name:"مونوبولي", price:15, cat:"ألعاب"},
+        {name:"ماء", price:1, cat:"شاهي"}
     ];
 
     let cart = [];
     let salesHistory = JSON.parse(localStorage.getItem('salesHistory')) || [];
 
-    // وظيفة التنقل بين الصفحات
-    function showPage(pageId, btn) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        btn.classList.add('active');
-        if(pageId === 'history') renderHistory();
-        if(pageId === 'reports') renderReports();
-    }
-
-    // وظائف الكاشير
+    // 2. تحديث دالة العرض لضمان ظهور الأصناف عند تشغيل الصفحة
     function renderProducts(filter = 'الكل') {
         const grid = document.getElementById('p-grid');
-        grid.innerHTML = products
-            .filter(p => filter === 'الكل' || p.cat === filter)
-            .map((p, i) => `
+        if (!grid) return; // تأمين في حال لم يتم تحميل العنصر
+
+        // فلترة الأصناف بناءً على التصنيف المختار
+        let filtered = filter === 'الكل' ? products : products.filter(p => p.cat === filter);
+        
+        grid.innerHTML = filtered.map((p) => {
+            // البحث عن مكان المنتج الأصلي في المصفوفة لإضافته للسلة بشكل صحيح
+            let originalIdx = products.findIndex(item => item.name === p.name);
+            return `
                 <div class="product" onclick="addToCart('${p.name}')">
                     <strong>${p.name}</strong><br>
                     <b style="color:var(--maroon)">${p.price.toFixed(2)} ر.س</b>
                 </div>
-            `).join('');
+            `;
+        }).join('');
+
+        // تحديث شكل أزرار التصنيفات
+        updateCatButtons(filter);
     }
 
+    function updateCatButtons(activeCat) {
+        // إذا كان عندك أزرار تصنيفات، هذا الكود يضيف لها شكل "الضغط"
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.innerText.includes(activeCat)) btn.classList.add('active');
+        });
+    }
+
+    // 3. دالة إضافة للسلة محسنة
     function addToCart(name) {
         const p = products.find(item => item.name === name);
         const existing = cart.find(item => item.name === name);
-        if(existing) existing.qty++; else cart.push({...p, qty: 1});
+        if(existing) {
+            existing.qty++;
+        } else {
+            cart.push({...p, qty: 1});
+        }
         updateUI();
     }
 
-    function updateUI() {
-        const list = document.getElementById('cart-list');
-        list.innerHTML = cart.map((item, i) => `
-            <div class="cart-row">
-                <span><span class="qty-badge">${item.qty}</span> ${item.name}</span>
-                <span>${(item.price * item.qty).toFixed(2)} ر.س</span>
-            </div>
-        `).join('');
-
-        let subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-        let tax = subtotal * 0.15;
-        let total = subtotal + tax;
-
-        document.getElementById('subtotal').innerText = subtotal.toFixed(2) + " ر.س";
-        document.getElementById('tax').innerText = tax.toFixed(2) + " ر.س";
-        document.getElementById('total').innerText = total.toFixed(2) + " ر.س";
-    }
-
-    function processPayment(method) {
-        if(cart.length === 0) return;
-        let subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-        let total = subtotal * 1.15;
-        
-        const invoice = {
-            id: Date.now(),
-            time: new Date().toLocaleTimeString(),
-            total: total.toFixed(2),
-            method: method
-        };
-
-        salesHistory.push(invoice);
-        localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
-        
-        alert("تم حفظ الفاتورة بنجاح!");
-        cart = [];
+    // تشغيل العرض فور تحميل الصفحة
+    window.onload = function() {
+        renderProducts('الكل');
         updateUI();
-    }
-
-    function renderHistory() {
-        const body = document.getElementById('history-body');
-        body.innerHTML = salesHistory.map(inv => `
-            <tr>
-                <td>#${inv.id.toString().slice(-5)}</td>
-                <td>${inv.time}</td>
-                <td style="color:var(--maroon); font-weight:bold">${inv.total} ر.س</td>
-                <td>${inv.method}</td>
-            </tr>
-        `).join('');
-    }
-
-    function renderReports() {
-        let totalSum = salesHistory.reduce((s, i) => s + parseFloat(i.total), 0);
-        document.getElementById('rep-count').innerText = salesHistory.length;
-        document.getElementById('rep-total').innerText = totalSum.toFixed(2) + " ر.س";
-    }
-
-    function clearCart() { cart = []; updateUI(); }
-
-    // التشغيل المبدئي
-    renderProducts();
+    };
 </script>
-</body>
-</html>
