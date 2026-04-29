@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاهي وليف - نظام السلة المؤكد</title>
+    <title>كاشير شاهي وليف المطور</title>
     <style>
         :root { 
             --primary: #4f46e5; --dark: #111827; --bg: #e5e7eb;
@@ -13,159 +13,131 @@
         
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* الهيدر */
-        .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 0 20px; height: 50px; flex-shrink: 0; }
+        /* الهيدر مع زر القائمة */
+        .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 0 15px; height: 50px; flex-shrink: 0; }
+        .menu-btn { background: var(--bg); border: none; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; box-shadow: 2px 2px 5px #000; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 
-        .main-content { display: flex; flex: 1; overflow: hidden; padding: 15px; gap: 15px; }
+        /* القائمة الجانبية */
+        .sidebar { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background: var(--bg); z-index: 2000; transition: 0.3s; box-shadow: -5px 0 15px rgba(0,0,0,0.1); padding: 20px; }
+        .sidebar.open { right: 0; }
+        .side-item { padding: 12px; margin-bottom: 10px; border-radius: 12px; background: var(--bg); box-shadow: var(--shadow-out); text-align: center; cursor: pointer; font-weight: bold; }
+        .side-item:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
 
-        /* قسم الأصناف (اليمين) */
-        .pos-container { flex: 2; display: flex; flex-direction: column; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow-out); padding: 15px; overflow: hidden; }
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; overflow-y: auto; padding: 10px; flex: 1; }
-        .product { background: var(--bg); padding: 20px 10px; border-radius: 18px; text-align: center; cursor: pointer; box-shadow: var(--shadow-out); transition: 0.1s; }
-        .product:active { box-shadow: var(--shadow-in); transform: scale(0.96); }
+        .main-content { display: flex; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
 
-        /* قسم السلة (اليسار) - هنا التأكيد */
-        .cart-section { 
-            width: 350px; background: var(--bg); border-radius: 20px; 
-            display: flex; flex-direction: column; box-shadow: var(--shadow-out); padding: 20px; 
+        /* تعديل المربعات لتكون متناسقة */
+        .pos-container { flex: 2; display: flex; flex-direction: column; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow-out); padding: 10px; overflow: hidden; }
+        .products-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* منع الشكل الطولي */
+            grid-auto-rows: 100px; /* تحديد ارتفاع ثابت للمربع */
+            gap: 10px; 
+            overflow-y: auto; 
+            padding: 5px; 
         }
         
-        .cart-header { font-weight: bold; margin-bottom: 15px; color: var(--dark); border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
-
-        /* حاوية قائمة الطلبات */
-        .cart-items { 
-            flex: 1; overflow-y: auto; margin-bottom: 15px; border-radius: 15px; 
-            box-shadow: var(--shadow-in); padding: 10px; background: rgba(255,255,255,0.2);
+        .product { 
+            background: var(--bg); 
+            border-radius: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            box-shadow: var(--shadow-out); 
+            transition: 0.1s; 
+            border: 1px solid rgba(255,255,255,0.5);
         }
+        .product:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
+        .product strong { font-size: 13px; margin-bottom: 5px; }
 
-        /* شكل الطلب الواحد داخل السلة */
-        .cart-row { 
-            background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.05); animation: slideIn 0.2s ease;
-        }
+        /* السلة */
+        .cart-section { width: 300px; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow-out); display: flex; flex-direction: column; padding: 10px; }
+        .cart-items { flex: 1; overflow-y: auto; border-radius: 12px; box-shadow: var(--shadow-in); padding: 8px; margin-bottom: 10px; }
+        .cart-row { background: white; padding: 8px; border-radius: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 12px; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-
-        .btn-cancel-item { 
-            background: #fee2e2; color: #ef4444; border: none; width: 28px; height: 28px; 
-            border-radius: 50%; cursor: pointer; font-weight: bold; transition: 0.2s;
-        }
-        .btn-cancel-item:active { transform: scale(0.8); background: #fca5a5; }
-
-        .summary-box { background: var(--bg); padding: 15px; border-radius: 18px; text-align: center; box-shadow: var(--shadow-in); margin-bottom: 15px; }
-        .btn-pay { padding: 14px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; box-shadow: var(--shadow-out); transition: 0.1s; }
+        .summary { background: var(--bg); padding: 10px; border-radius: 15px; box-shadow: var(--shadow-in); text-align: center; margin-bottom: 10px; }
+        .btn-pay { padding: 10px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; box-shadow: var(--shadow-out); }
         .btn-pay:active { box-shadow: var(--shadow-in); transform: scale(0.97); }
+
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1999; }
+        .overlay.active { display: block; }
     </style>
 </head>
 <body>
 
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
+        <h3>الإعدادات</h3>
+        <div class="side-item">📊 مبيعات الشهر</div>
+        <div class="side-item">📦 إدارة الأصناف</div>
+        <div class="side-item" style="margin-top: auto; background: var(--dark); color: white;" onclick="toggleSidebar()">إغلاق</div>
+    </div>
+
     <div class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
         <h3 style="margin:0;">🍃 شاهي وليف</h3>
-        <span>نظام الكاشير الذكي</span>
+        <div style="width: 35px;"></div>
     </div>
 
     <div class="main-content">
         <div class="pos-container">
-            <div class="products-grid" id="products-list">
-                </div>
+            <div class="products-grid" id="grid"></div>
         </div>
 
         <div class="cart-section">
-            <div class="cart-header">🛒 قائمة الطلبات فالسلة</div>
-            
-            <div id="cart-display" class="cart-items">
-                </div>
-            
-            <div class="summary-box">
-                <small>الإجمالي (شامل الضريبة)</small>
-                <div id="total-price" style="font-size: 1.8rem; font-weight: 900; color: var(--dark);">0.00</div>
+            <div class="cart-items" id="cart"></div>
+            <div class="summary">
+                <small>الإجمالي</small>
+                <div id="total" style="font-size: 1.5rem; font-weight: 900;">0.00</div>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn-pay" style="background:var(--success)" onclick="processPay('كاش')">💵 كاش</button>
-                <button class="btn-pay" style="background:var(--primary)" onclick="processPay('شبكة')">💳 شبكة</button>
-                <button class="btn-pay" style="background:var(--danger); grid-column: span 2;" onclick="clearAll()">✖ كنسلة الطلب بالكامل</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn-pay" style="background:#10b981" onclick="pay()">كاش</button>
+                <button class="btn-pay" style="background:#4f46e5" onclick="pay()">شبكة</button>
             </div>
         </div>
     </div>
 
 <script>
-    // بيانات تجريبية
     let products = [
-        { name: "شاي كرك", price: 3 },
-        { name: "شاي نعناع", price: 2 },
-        { name: "فطيرة جبن", price: 5 },
-        { name: "جاكارو", price: 10 }
+        {name:"شاي كرك", price:3}, {name:"شاي نعناع", price:2},
+        {name:"فطيرة جبن", price:5}, {name:"جاكارو", price:10},
+        {name:"شاي أخضر", price:2}, {name:"كيك", price:7}
     ];
+    let cart = [];
 
-    let currentCart = [];
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+    }
 
-    // 1. عرض الأصناف في اليمين
-    function renderProducts() {
-        const list = document.getElementById('products-list');
-        list.innerHTML = products.map((p, index) => `
-            <div class="product" onclick="addToCart(${index})">
-                <strong>${p.name}</strong><br>
-                <b>${p.price} ر.س</b>
+    function render() {
+        document.getElementById('grid').innerHTML = products.map((p, i) => `
+            <div class="product" onclick="addToCart(${i})">
+                <strong>${p.name}</strong>
+                <b style="color:var(--primary)">${p.price} ر.س</b>
             </div>
         `).join('');
     }
 
-    // 2. إضافة صنف للسلة (تأكيد الظهور)
-    function addToCart(index) {
-        const item = { ...products[index], cartId: Date.now() };
-        currentCart.push(item);
-        updateCartUI();
+    function addToCart(idx) {
+        cart.push(products[idx]);
+        updateCart();
     }
 
-    // 3. حذف صنف واحد من السلة (الكنسلة الجزئية)
-    function removeItem(cartId) {
-        currentCart = currentCart.filter(item => item.cartId !== cartId);
-        updateCartUI();
+    function updateCart() {
+        let list = document.getElementById('cart');
+        list.innerHTML = cart.map(item => `
+            <div class="cart-row"><span>${item.name}</span><b>${item.price}</b></div>
+        `).join('');
+        let total = cart.reduce((a, b) => a + b.price, 0) * 1.15;
+        document.getElementById('total').innerText = total.toFixed(2);
     }
 
-    // 4. تحديث شكل السلة (هذا الجزء المسؤول عن ظهور الطلبات)
-    function updateCartUI() {
-        const display = document.getElementById('cart-display');
-        const totalDisplay = document.getElementById('total-price');
-        
-        if (currentCart.length === 0) {
-            display.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">السلة فارغة..</p>';
-        } else {
-            display.innerHTML = currentCart.map(item => `
-                <div class="cart-row">
-                    <span>${item.name}</span>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <b>${item.price} ر.س</b>
-                        <button class="btn-cancel-item" onclick="removeItem(${item.cartId})">✕</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+    function pay() { if(cart.length) { alert("تم الدفع"); cart = []; updateCart(); } }
 
-        // حساب الإجمالي
-        let subtotal = currentCart.reduce((sum, item) => sum + item.price, 0);
-        let totalWithTax = subtotal * 1.15;
-        totalDisplay.innerText = totalWithTax.toFixed(2);
-    }
-
-    function clearAll() {
-        if(currentCart.length > 0 && confirm("هل تريد حذف كل الطلبات؟")) {
-            currentCart = [];
-            updateCartUI();
-        }
-    }
-
-    function processPay(type) {
-        if(currentCart.length > 0) {
-            alert("تم تنفيذ طلبك بقيمة " + document.getElementById('total-price').innerText + " ر.س عبر " + type);
-            currentCart = [];
-            updateCartUI();
-        }
-    }
-
-    window.onload = renderProducts;
+    window.onload = render;
 </script>
 </body>
 </html>
