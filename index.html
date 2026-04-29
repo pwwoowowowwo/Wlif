@@ -158,8 +158,26 @@
 
     function renderProducts() {
         const grid = document.getElementById('p-grid');
-        const filtered = currentCat === "الكل" ? products : products.filter(p => p.cat === currentCat);
-        grid.innerHTML = filtered.map(p => `
+        const filtered = currentCat === "الكل" ? products : products.filter(p => p.cat ===     function updateUI() {
+        const list = document.getElementById('cart-list');
+        list.innerHTML = cart.map((item, i) => `
+            <div class="cart-row">
+                <span><span class="qty-badge">${item.qty}</span> ${item.name}</span>
+                <div>
+                    <span style="margin-left:10px">${(item.price * item.qty).toFixed(2)} ﷼</span>
+                    <button onclick="removeFromCart(${i})" style="border:none; background:none; color:var(--danger); cursor:pointer; font-weight:bold;">✕</button>
+                </div>
+            </div>
+        `).join('') || '<p style="text-align:center; color:#999; padding:20px;">أضف طلباً..</p>';
+
+        let subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        let tax = subtotal * 0.15;
+        let total = subtotal + tax;
+
+        document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+        document.getElementById('tax').innerText = tax.toFixed(2);
+        document.getElementById('total').innerText = total.toFixed(2);
+    }
             <div class="product" onclick="addToCart('${p.name}')">
                 <strong>${p.name}</strong>
                 <b>${p.price.toFixed(2)} ﷼</b>
