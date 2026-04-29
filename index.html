@@ -153,6 +153,14 @@
     function openNewInvoice() {
         cart = [];
         updateUI();
+            function removeFromCart(index) {
+        if (cart[index].qty > 1) {
+            cart[index].qty--; // ينقص الكمية بواحد إذا كانت أكثر من 1
+        } else {
+            cart.splice(index, 1); // يحذف الصنف نهائياً إذا كانت الكمية 1
+        }
+        updateUI();
+    }
         showPage('cashier', document.getElementById('nav-cashier'));
     }
 
