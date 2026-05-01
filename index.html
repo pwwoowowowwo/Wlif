@@ -3,38 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاهي وليف - المنيو</title>
+    <title>شاهي وليف - المنيو الذكي</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         :root { --p: #8b4513; --bg: #fdfaf5; --text: #3e2723; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 110px; }
-        header { background: var(--p); color: white; padding: 25px; text-align: center; border-radius: 0 0 30px 30px; }
-        .cat-title { background: #efe0d5; color: var(--p); padding: 8px 20px; font-weight: bold; margin-top: 15px; border-right: 5px solid var(--p); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 160px; color: var(--text); overflow-x: hidden; }
+        
+        /* لوحة الترحيب */
+        #welcome-screen { position: fixed; inset: 0; background: var(--p); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: 0.8s ease-in-out; }
+        .logo-anim { font-size: 3em; margin-bottom: 10px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        header { background: var(--p); color: white; padding: 20px; text-align: center; border-radius: 0 0 25px 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .cat-title { background: #efe0d5; color: var(--p); padding: 8px 20px; font-weight: bold; margin-top: 15px; border-right: 5px solid var(--p); position: sticky; top: 0; z-index: 10; }
         .card { background: white; padding: 15px; margin: 10px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .add-btn { background: var(--p); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .cart-bar { position: fixed; bottom: 0; width: 100%; background: #3e2723; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; border-radius: 20px 20px 0 0; }
-        #order-type-overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .type-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
-        .btn-opt { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--p); border-radius: 12px; font-weight: bold; background: white; color: var(--p); }
+        .add-btn { background: var(--p); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); padding: 15px; box-sizing: border-box; border-radius: 20px 20px 0 0; z-index: 1000; }
+        .type-selector { display: flex; gap: 10px; margin-bottom: 10px; }
+        .type-btn { flex: 1; padding: 10px; border: 2px solid var(--p); border-radius: 10px; background: white; color: var(--p); font-weight: bold; cursor: pointer; }
+        .type-btn.active { background: var(--p); color: white; }
+        .confirm-btn { width: 100%; background: #27ae60; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; }
+        
+        #order-status-box { display: none; position: fixed; top: 15%; left: 10%; right: 10%; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); text-align: center; z-index: 4000; border: 3px solid var(--p); }
     </style>
 </head>
 <body>
-<div id="order-type-overlay">
-    <div class="type-box">
-        <h2 style="color:var(--p)">شاهي وليف 🍵</h2>
-        <button class="btn-opt" onclick="start('محلي')">🍽️ طلب محلي</button>
-        <button class="btn-opt" onclick="start('سفري')">🥡 طلب سفري</button>
-    </div>
+
+<!-- لوحة الترحيب -->
+<div id="welcome-screen">
+    <div class="logo-anim">🍵</div>
+    <h1 style="margin:0;">شاهي وليف</h1>
+    <p>جاري تجهيز المنيو...</p>
 </div>
-<div id="main-ui" style="display:none;">
-    <header><h1 style="margin:0;">شاهي وليف</h1><div id="info"></div></header>
-    <div id="menu-container"></div>
-    <div class="cart-bar">
-        <div><div id="total" style="font-size:1.2em; font-weight:bold;">0 ريال</div><small id="count">السلة فارغة</small></div>
-        <button onclick="sendOrder()" style="background:#27ae60; border:none; color:white; padding:10px 25px; border-radius:10px; font-weight:bold;">تأكيد الطلب</button>
-    </div>
+
+<header>
+    <h1 style="margin:0; font-size: 1.5em;">شاهي وليف 🍃</h1>
+    <div id="user-info" style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;"></div>
+</header>
+
+<div id="order-status-box">
+    <h2 style="color: var(--p)">وصلنا طلبك! ✅</h2>
+    <div style="font-size: 1.4em; margin: 10px 0;">الفاتورة: <b id="st-inv">#---</b></div>
+    <div id="st-text" style="background: #fff3cd; padding: 10px; border-radius: 10px; font-weight: bold;">بإنتظار التأكيد...</div>
+    <button onclick="clearCacheAndReload()" style="margin-top:20px; background: var(--p); color: white; border:none; padding:12px 25px; border-radius:10px; width: 100%;">طلب جديد</button>
 </div>
+
+<div id="menu-container"></div>
+
+<div class="bottom-nav">
+    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold;">
+        <span>الحساب: <span id="total-price">0</span> ريال</span>
+        <span>السلة: <span id="items-count">0</span> أصناف</span>
+    </div>
+    
+    <div class="type-selector">
+        <button class="type-btn active" id="btn-local" onclick="setType('محلي')">🍽️ محلي</button>
+        <button class="type-btn" id="btn-away" onclick="setType('سفري')">🥡 سفري</button>
+    </div>
+    
+    <button class="confirm-btn" onclick="processOrder()">إرسال الطلب 🚀</button>
+</div>
+
 <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
@@ -47,36 +78,107 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let orderType = "", cart = [], total = 0, detail = "";
 
-    function start(t) {
-        orderType = t; detail = (t === 'محلي') ? prompt("رقم الطاولة؟") : prompt("رقم الجوال؟");
-        if(!detail) return;
-        document.getElementById('order-type-overlay').style.display='none';
-        document.getElementById('main-ui').style.display='block';
-        document.getElementById('info').innerText = `طلب ${t} - ${detail}`;
-        loadMenu();
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let totalPrice = parseFloat(localStorage.getItem('totalPrice')) || 0;
+    let selectedType = localStorage.getItem('selectedType') || 'محلي';
+
+    // إخفاء لوحة الترحيب بعد ثانية ونصف
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('welcome-screen').style.opacity = '0';
+            setTimeout(() => document.getElementById('welcome-screen').style.display = 'none', 800);
+        }, 1500);
+        updateUI();
+        setType(selectedType);
+        
+        // التحقق إذا كان هناك طلب نشط محفوظ
+        const lastInv = localStorage.getItem('lastInvoice');
+        if(lastInv) showStatus(lastInv);
+    };
+
+    db.ref('menu').on('value', (snap) => {
+        const data = snap.val();
+        const container = document.getElementById('menu-container');
+        container.innerHTML = "";
+        let cats = {};
+        for(let id in data) {
+            let c = data[id].category || "عام";
+            if(!cats[c]) cats[c] = [];
+            cats[c].push(data[id]);
+        }
+        for(let cName in cats) {
+            container.innerHTML += `<div class="cat-title">${cName}</div>`;
+            cats[cName].forEach(item => {
+                container.innerHTML += `
+                <div class="card">
+                    <div><b>${item.name}</b><br><small>${item.price} ريال</small></div>
+                    <button class="add-btn" onclick="addToCart('${item.name}', ${item.price})">إضافة +</button>
+                </div>`;
+            });
+        }
+    });
+
+    function setType(t) {
+        selectedType = t;
+        localStorage.setItem('selectedType', t);
+        document.getElementById('btn-local').classList.toggle('active', t === 'محلي');
+        document.getElementById('btn-away').classList.toggle('active', t === 'سفري');
     }
-    function loadMenu() {
-        db.ref('menu').on('value', (snap) => {
-            const data = snap.val(); const container = document.getElementById('menu-container');
-            container.innerHTML = ""; let cats = {};
-            for(let id in data) { let c = data[id].category || "عام"; if(!cats[c]) cats[c] = []; cats[c].push(data[id]); }
-            for(let cName in cats) {
-                container.innerHTML += `<div class="cat-title">${cName}</div>`;
-                cats[cName].forEach(item => {
-                    container.innerHTML += `<div class="card"><div><b>${item.name}</b><br><span>${item.price} ريال</span></div>
-                    <button class="add-btn" onclick="add('${item.name}', ${item.price})">+</button></div>`;
-                });
+
+    function addToCart(name, price) {
+        cart.push(name);
+        totalPrice += price;
+        saveCart();
+        updateUI();
+    }
+
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.setItem('totalPrice', totalPrice);
+    }
+
+    function updateUI() {
+        document.getElementById('total-price').innerText = totalPrice;
+        document.getElementById('items-count').innerText = cart.length;
+    }
+
+    function processOrder() {
+        if(cart.length === 0) return alert("السلة فارغة!");
+        let info = (selectedType === 'محلي') ? prompt("رقم الطاولة:") : prompt("رقم الجوال:");
+        if(!info) return;
+
+        const invoiceId = Math.floor(1000 + Math.random() * 9000);
+        const orderData = {
+            inv: invoiceId, type: selectedType, detail: info,
+            items: cart, total: totalPrice, status: 'pending',
+            time: new Date().toLocaleTimeString('ar-SA')
+        };
+
+        db.ref('orders/' + invoiceId).set(orderData).then(() => {
+            localStorage.setItem('lastInvoice', invoiceId);
+            showStatus(invoiceId);
+        });
+    }
+
+    function showStatus(invId) {
+        document.getElementById('order-status-box').style.display = 'block';
+        document.getElementById('st-inv').innerText = "#" + invId;
+        db.ref('orders/' + invId + '/status').on('value', (snap) => {
+            const s = snap.val();
+            const label = document.getElementById('st-text');
+            if(s === 'pending') label.innerText = "⏳ قيد الانتظار...";
+            if(s === 'working') label.innerText = "👨‍🍳 جاري التحضير...";
+            if(s === 'ready') {
+                label.innerText = "✅ طلبك جاهز!";
+                label.style.background = "#d4edda";
             }
         });
     }
-    function add(n, p) { cart.push(n); total += p; document.getElementById('total').innerText = total + " ريال"; document.getElementById('count').innerText = cart.length + " أصناف"; }
-    function sendOrder() {
-        if(!cart.length) return alert("السلة فارغة");
-        const inv = Math.floor(1000 + Math.random() * 9000);
-        db.ref('orders/' + inv).set({ inv, type: orderType, detail, items: cart, total, status: 'pending', time: new Date().toLocaleTimeString('ar-SA') })
-        .then(() => { alert("تم الإرسال! رقم الفاتورة: #" + inv); location.reload(); });
+
+    function clearCacheAndReload() {
+        localStorage.clear();
+        location.reload();
     }
 </script>
 </body>
