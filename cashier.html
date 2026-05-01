@@ -13,31 +13,36 @@
 </head>
 <body>
     <h1>الطلبات النشطة 🕒</h1>
-    <div id="list">جاري الانتظار...</div>
+    <div id="list"></div>
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
-      authDomain: "shahi-walif.firebaseapp.com",
-      projectId: "shahi-walif",
-      databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
-      storageBucket: "shahi-walif.firebasestorage.app",
-      messagingSenderId: "359593950202",
-      appId: "1:359593950202:web:9172faee5442536c49c243"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    db.ref('orders').on('value', (snap) => {
-        const data = snap.val(); let h = '';
-        for(let id in data) {
-            const o = data[id]; if(o.status === 'ready') continue;
-            h += `<div class="order-card">
-                <div><b>[${o.type}] #${o.inv} - ${o.detail}</b><p>${o.items.join(' + ')}</p><b>${o.total} ريال</b></div>
-                <button class="btn" onclick="done('${o.inv}')">تم التجهيز ✅</button>
-            </div>`;
-        }
-        document.getElementById('list').innerHTML = h || 'لا توجد طلبات حالياً';
-    });
-    function done(id) { db.ref('orders/'+id).update({ status: 'ready' }); }
+    const pass = prompt("كلمة مرور الكاشير:");
+    if (pass !== "1234") {
+        document.body.innerHTML = "<h1>خطأ في الدخول</h1>";
+    } else {
+        const firebaseConfig = {
+          apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
+          authDomain: "shahi-walif.firebaseapp.com",
+          projectId: "shahi-walif",
+          databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
+          storageBucket: "shahi-walif.firebasestorage.app",
+          messagingSenderId: "359593950202",
+          appId: "1:359593950202:web:9172faee5442536c49c243"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        db.ref('orders').on('value', (snap) => {
+            const data = snap.val(); let h = '';
+            for(let id in data) {
+                const o = data[id]; if(o.status === 'ready') continue;
+                h += `<div class="order-card">
+                    <div><b>[${o.type}] #${o.inv} - ${o.detail}</b><p>${o.items.join(' + ')}</p><b>${o.total} ريال</b></div>
+                    <button class="btn" onclick="done('${o.inv}')">تم التجهيز ✅</button>
+                </div>`;
+            }
+            document.getElementById('list').innerHTML = h || 'لا توجد طلبات';
+        });
+        window.done = function(id) { db.ref('orders/'+id).update({ status: 'ready' }); }
+    }
 </script>
 </body>
 </html>
