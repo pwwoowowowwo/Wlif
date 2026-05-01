@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>طلبات الكاشير</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; padding: 20px; }
+        .order-card { background: white; color: #333; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .type { padding: 5px 10px; border-radius: 5px; color: white; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <h1>الطلبات الجديدة 🕒</h1>
+    <div id="list">جاري التحميل...</div>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
+      authDomain: "shahi-walif.firebaseapp.com",
+      projectId: "shahi-walif",
+      databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
+      storageBucket: "shahi-walif.firebasestorage.app",
+      messagingSenderId: "359593950202",
+      appId: "1:359593950202:web:9172faee5442536c49c243"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    db.ref('orders').on('value', (snap) => {
+        const data = snap.val(); let h = '';
+        for(let id in data) {
+            const o = data[id]; if(o.status === 'ready') continue;
+            const c = o.type === 'محلي' ? '#2ecc71' : '#e74c3c';
+            h += `<div class="order-card" style="border-right: 10px solid ${c}">
+                <div><span class="type" style="background:${c}">${o.type}</span> <b>#${o.inv} - ${o.detail}</b><p>${o.items.join(' + ')}</p><b>${o.total} ريال</b></div>
+                <button class="btn" onclick="finish('${o.inv}')">تجهيز ✅</button>
+            </div>`;
+        }
+        document.getElementById('list').innerHTML = h || 'لا توجد طلبات';
+    });
+    function finish(id) { db.ref('orders/'+id).update({ status: 'ready' }); }
+</script>
+</body>
+</html>
