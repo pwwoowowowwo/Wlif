@@ -2,47 +2,199 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>كاشير شاهي وليف</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام شاهي وليف المتكامل</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; padding: 20px; }
-        .order-card { background: white; color: #333; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-right: 12px solid #8b4513; }
-        .btn { background: #27ae60; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        :root { --p: #8b4513; --bg: #f0f2f5; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* الهيدر */
+        header { background: var(--p); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .main-layout { display: grid; grid-template-columns: 350px 1fr 300px; gap: 15px; padding: 15px; flex-grow: 1; overflow: hidden; }
+        @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; overflow-y: auto; } }
+
+        /* القسم الأول: إضافة وإدارة الأصناف */
+        .section { background: var(--white); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        .scroll-area { overflow-y: auto; flex-grow: 1; margin-top: 10px; }
+        
+        h3 { border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-top: 0; color: var(--p); display: flex; align-items: center; gap: 8px; }
+        input, select, button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        
+        /* تصميم المربعات للأصناف في الكاشير */
+        .item-box { background: #fdfaf5; border: 1px solid #e0d5c5; border-radius: 10px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-del { width: auto; background: #ff4757; color: white; border: none; padding: 5px 10px; margin: 0; cursor: pointer; }
+
+        /* القسم الثاني: الطلبات القادمة (الفواتير) */
+        .order-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative; border-right: 8px solid #f1c40f; }
+        .order-card.ready { border-right-color: #27ae60; background: #f9fff9; }
+        .inv-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+
+        /* القسم الثالث: كاشير سريع (بيع مباشر) */
+        .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+        .pos-btn { background: #efe0d5; border: 1px solid var(--p); padding: 8px; border-radius: 8px; font-size: 0.8em; text-align: center; cursor: pointer; }
+        .pos-btn:active { background: var(--p); color: white; }
     </style>
 </head>
 <body>
-    <h1>الطلبات النشطة 🕒</h1>
-    <div id="list"></div>
+
+<header>
+    <h2 style="margin:0;">لوحة كاشير شاهي وليف 🍵</h2>
+    <div id="stats">المبيعات: <span id="daily-total">0</span> ﷼</div>
+</header>
+
+<div class="main-layout">
+    
+    <!-- 1. إدارة المستودع (إضافة وحذف) -->
+    <div class="section">
+        <h3>📦 إضافة صنف للمنيو</h3>
+        <input type="text" id="new-name" placeholder="اسم الصنف">
+        <input type="number" id="new-price" placeholder="السعر">
+        <select id="new-cat">
+            <option value="شاهي">قسم الشاهي</option>
+            <option value="مخبوزات">قسم المخبوزات</option>
+            <option value="ألعاب">قسم الألعاب</option>
+            <option value="بارد">مشروبات باردة</option>
+        </select>
+        <button style="background: #27ae60; color: white; font-weight: bold;" onclick="addNewItem()">إضافة للمنيو الآن ✅</button>
+        
+        <h3 style="margin-top:15px;">📋 الأصناف الحالية</h3>
+        <div class="scroll-area" id="inventory-list"></div>
+    </div>
+
+    <!-- 2. شاشة الطلبات والفواتير -->
+    <div class="section">
+        <h3>📥 طلبات العملاء والفواتير</h3>
+        <div class="scroll-area" id="orders-list"></div>
+    </div>
+
+    <!-- 3. كاشير سريع للبيع المباشر -->
+    <div class="section">
+        <h3>⚡ بيع مباشر (كاونتر)</h3>
+        <div class="pos-grid" id="quick-pos">
+            <!-- تظهر هنا الأصناف للضغط السريع -->
+        </div>
+        <div style="margin-top:15px; border-top:2px solid #eee; padding-top:10px;">
+            <b>السلة:</b> <span id="pos-cart-text">فارغة</span><br>
+            <b>الإجمالي:</b> <span id="pos-total">0</span> ﷼
+            <button style="background: var(--p); color: white; margin-top:10px;" onclick="saveManualOrder()">إصدار فاتورة كاونتر 🧾</button>
+        </div>
+    </div>
+
+</div>
+
 <script>
-    const pass = prompt("كلمة مرور الكاشير:");
-    if (pass !== "1234") {
-        document.body.innerHTML = "<h1>خطأ في الدخول</h1>";
-    } else {
-        const firebaseConfig = {
-          apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
-          authDomain: "shahi-walif.firebaseapp.com",
-          projectId: "shahi-walif",
-          databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
-          storageBucket: "shahi-walif.firebasestorage.app",
-          messagingSenderId: "359593950202",
-          appId: "1:359593950202:web:9172faee5442536c49c243"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        db.ref('orders').on('value', (snap) => {
-            const data = snap.val(); let h = '';
-            for(let id in data) {
-                const o = data[id]; if(o.status === 'ready') continue;
-                h += `<div class="order-card">
-                    <div><b>[${o.type}] #${o.inv} - ${o.detail}</b><p>${o.items.join(' + ')}</p><b>${o.total} ريال</b></div>
-                    <button class="btn" onclick="done('${o.inv}')">تم التجهيز ✅</button>
-                </div>`;
-            }
-            document.getElementById('list').innerHTML = h || 'لا توجد طلبات';
-        });
-        window.done = function(id) { db.ref('orders/'+id).update({ status: 'ready' }); }
+    // إعدادات Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
+      authDomain: "shahi-walif.firebaseapp.com",
+      projectId: "shahi-walif",
+      databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
+      storageBucket: "shahi-walif.firebasestorage.app",
+      messagingSenderId: "359593950202",
+      appId: "1:359593950202:web:9172faee5442536c49c243"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let currentPosCart = [];
+    let currentPosTotal = 0;
+
+    // --- وظائف المستودع ---
+    function addNewItem() {
+        const name = document.getElementById('new-name').value;
+        const price = document.getElementById('new-price').value;
+        const cat = document.getElementById('new-cat').value;
+        if(name && price) {
+            const id = Date.now();
+            db.ref('menu/' + id).set({ name, price: parseInt(price), category: cat });
+            document.getElementById('new-name').value = "";
+            document.getElementById('new-price').value = "";
+        }
     }
+
+    function deleteItem(id) {
+        if(confirm("حذف الصنف من المنيو؟")) db.ref('menu/' + id).remove();
+    }
+
+    // --- تحديث البيانات حياً ---
+    db.ref('menu').on('value', (snap) => {
+        const data = snap.val();
+        const invList = document.getElementById('inventory-list');
+        const quickPos = document.getElementById('quick-pos');
+        invList.innerHTML = "";
+        quickPos.innerHTML = "";
+        
+        for(let id in data) {
+            const item = data[id];
+            // عرض في قائمة الحذف
+            invList.innerHTML += `
+                <div class="item-box">
+                    <span>${item.name} (${item.price} ﷼)</span>
+                    <button class="btn-del" onclick="deleteItem('${id}')">حذف</button>
+                </div>`;
+            // عرض في أزرار الكاشير السريع
+            quickPos.innerHTML += `
+                <div class="pos-btn" onclick="addToPosCart('${item.name}', ${item.price})">
+                    ${item.name}<br><b>${item.price} ﷼</b>
+                </div>`;
+        }
+    });
+
+    // --- وظائف الكاشير السريع ---
+    function addToPosCart(name, price) {
+        currentPosCart.push(name);
+        currentPosTotal += price;
+        document.getElementById('pos-cart-text').innerText = currentPosCart.length + " أصناف";
+        document.getElementById('pos-total').innerText = currentPosTotal;
+    }
+
+    function saveManualOrder() {
+        if(currentPosCart.length === 0) return;
+        const invId = Math.floor(1000 + Math.random() * 9000);
+        db.ref('orders/' + invId).set({
+            inv: invId, type: 'كاونتر', detail: 'مباشر',
+            items: currentPosCart, total: currentPosTotal, status: 'ready',
+            time: new Date().toLocaleTimeString('ar-SA')
+        }).then(() => {
+            currentPosCart = []; currentPosTotal = 0;
+            document.getElementById('pos-cart-text').innerText = "فارغة";
+            document.getElementById('pos-total').innerText = "0";
+        });
+    }
+
+    // --- وظائف الطلبات والفواتير ---
+    db.ref('orders').on('value', (snap) => {
+        const orders = snap.val();
+        const list = document.getElementById('orders-list');
+        let dailyTotal = 0;
+        list.innerHTML = "";
+        
+        for(let id in orders) {
+            const o = orders[id];
+            if(o.status === 'ready') dailyTotal += o.total;
+            
+            list.innerHTML += `
+                <div class="order-card ${o.status}">
+                    <div class="inv-header">
+                        <span>فاتورة #${o.inv}</span>
+                        <span>${o.total} ﷼</span>
+                    </div>
+                    <div style="font-size:0.9em; margin-bottom:10px;">
+                        <b>النوع:</b> ${o.type} | <b>التفاصيل:</b> ${o.detail}<br>
+                        <b>الأصناف:</b> ${o.items.join(' + ')}
+                    </div>
+                    ${o.status === 'pending' ? 
+                        `<button style="background:#27ae60; color:white; border:none; padding:8px;" onclick="db.ref('orders/${id}').update({status:'ready'})">تجهيز الطلب ✅</button>` : 
+                        `<div style="text-align:center; color:green; font-weight:bold;">مكتمل ✅</div>`
+                    }
+                    <button style="width:100%; margin-top:5px; font-size:0.8em;" onclick="window.print()">طباعة 🖨️</button>
+                </div>`;
+        }
+        document.getElementById('daily-total').innerText = dailyTotal;
+    });
 </script>
 </body>
 </html>
