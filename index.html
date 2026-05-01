@@ -3,26 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاهي وليف - المنيو</title>
+    <title>شاهي وليف - طلب جديد</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         :root { --p: #8b4513; --bg: #fdfaf5; --text: #3e2723; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 110px; }
-        header { background: var(--p); color: white; padding: 25px; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        /* تنسيق أقسام الأصناف */
-        .category-section { margin-top: 20px; }
-        .category-title { background: #efe0d5; color: var(--p); padding: 8px 20px; font-weight: bold; font-size: 1.1em; border-right: 5px solid var(--p); }
-        
+        header { background: var(--p); color: white; padding: 25px; text-align: center; border-radius: 0 0 30px 30px; }
+        .cat-title { background: #efe0d5; color: var(--p); padding: 8px 20px; font-weight: bold; margin-top: 15px; border-right: 5px solid var(--p); }
         .card { background: white; padding: 15px; margin: 10px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .item-info b { display: block; color: var(--text); font-size: 1.1em; }
-        .item-info span { color: var(--p); font-weight: bold; }
-        
         .add-btn { background: var(--p); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
         .cart-bar { position: fixed; bottom: 0; width: 100%; background: #3e2723; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; border-radius: 20px 20px 0 0; }
-        
-        /* شاشة اختيار النوع */
         #order-type-overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .type-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
-        .btn-opt { display: block; width: 100%; padding:
+        .btn-opt { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--p); border-radius: 12px; font-weight: bold; background: white; color: var(--p); }
+    </style>
+</head>
+<body>
+<div id="order-type-overlay">
+    <div class="type-box">
+        <h2 style="color:var(--p)">شاهي وليف 🍵</h2>
+        <button class="btn-opt" onclick="start('محلي')">🍽️ طلب محلي</button>
+        <button class="btn-opt" onclick="start('سفري')">🥡 طلب سفري</button>
+    </div>
+</div>
+<div id="main-ui" style="display:none;">
+    <header><h1 style="margin:0;">شاهي وليف</h1><div id="info"></div></header>
+    <div id="menu-container"></div>
+    <div class="cart-bar">
+        <div><div id="total" style="font-size:1.2em; font-weight:bold;">0 ريال</div><small id="count">السلة فارغة</small></div>
+        <button onclick="sendOrder()" style="background:#27ae60; border:none; color:white; padding:10px 25px; border-radius:10px; font-weight:bold;">تأكيد الطلب</button>
+    </div>
+</div>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
+      authDomain: "shahi-walif.firebaseapp.com",
+      projectId: "shahi-walif",
+      databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
+      storageBucket: "shahi-walif.firebasestorage.app",
+      messagingSenderId: "359593950202",
+      appId: "1:359593950202:web:9172faee5442536c49c243"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let orderType = "", cart = [], total = 0, detail = "";
+
+    function start(t) {
+        orderType = t; detail = (t === 'محلي') ? prompt("رقم الطاولة؟") : prompt("رقم الجوال؟");
+        if(!detail) return;
+        document.getElementById('order-type-overlay').style.display='none';
+        document.getElementById('main-ui').style.display='block';
+        document.getElementById('info').innerText = `طلب ${t} - ${detail}`;
+        loadMenu();
+    }
+    function loadMenu() {
+        db.ref('menu').on('value', (snap) => {
+            const data = snap.val(); const container = document.getElementById('menu-container');
+            container.innerHTML = ""; let cats = {};
+            for(let id in data) { let c = data[id].category || "عام"; if(!cats[c]) cats[c] = []; cats[c].push(data[id]); }
+            for(let cName in cats) {
+                container.innerHTML += `<div class="cat-title">${cName}</div>`;
+                cats[cName].forEach(item => {
+                    container.innerHTML += `<div class="card"><div><b>${item.name}</b><br><span>${item.price} ريال</span></div>
+                    <button class="add-btn" onclick="add('${item.name}', ${item.price})">+</button></div>`;
+                });
+            }
+        });
+    }
+    function add(n, p) { cart.push(n); total += p; document.getElementById('total').innerText = total + " ريال"; document.getElementById('count').innerText = cart.length + " أصناف"; }
+    function sendOrder() {
+        if(!cart.length) return alert("السلة فارغة");
+        const inv = Math.floor(1000 + Math.random() * 9000);
+        db.ref('orders/' + inv).set({ inv, type: orderType, detail, items: cart, total, status: 'pending', time: new Date().toLocaleTimeString('ar-SA') })
+        .then(() => { alert("تم الإرسال! رقم الفاتورة: #" + inv); location.reload(); });
+    }
+</script>
+</body>
+</html>
