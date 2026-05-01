@@ -3,147 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاهي وليف - طلب جديد</title>
+    <title>شاهي وليف - المنيو</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         :root { --p: #8b4513; --bg: #fdfaf5; --text: #3e2723; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
-        #splash { position: fixed; inset: 0; background: white; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 110px; }
+        header { background: var(--p); color: white; padding: 25px; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* تنسيق أقسام الأصناف */
+        .category-section { margin-top: 20px; }
+        .category-title { background: #efe0d5; color: var(--p); padding: 8px 20px; font-weight: bold; font-size: 1.1em; border-right: 5px solid var(--p); }
+        
+        .card { background: white; padding: 15px; margin: 10px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .item-info b { display: block; color: var(--text); font-size: 1.1em; }
+        .item-info span { color: var(--p); font-weight: bold; }
+        
+        .add-btn { background: var(--p); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .cart-bar { position: fixed; bottom: 0; width: 100%; background: #3e2723; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; border-radius: 20px 20px 0 0; }
+        
+        /* شاشة اختيار النوع */
         #order-type-overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .type-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
-        .btn-opt { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--p); border-radius: 12px; font-weight: bold; cursor: pointer; background: white; color: var(--p); font-size: 1.1em; }
-        header { background: var(--p); color: white; padding: 25px; text-align: center; border-radius: 0 0 40px 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .card { background: white; padding: 15px; margin: 12px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-right: 6px solid var(--p); }
-        .cart-bar { position: fixed; bottom: 0; width: 100%; background: var(--text); color: white; padding: 20px; display: flex; justify-content: space-between; box-sizing: border-box; border-radius: 25px 25px 0 0; }
-        #status-view { display: none; text-align: center; padding: 60px 20px; }
-    </style>
-</head>
-<body>
-
-<div id="splash"><div class="loader"></div><h2 style="color:var(--p)">شاهي وليف</h2></div>
-
-<div id="order-type-overlay">
-    <div class="type-box" id="step-1">
-        <h2 style="color:var(--p)">شاهي وليف 🍵</h2>
-        <p>كيف حاب تطلب اليوم؟</p>
-        <button class="btn-opt" onclick="showLocal()">🍽️ محلي (طاولة)</button>
-        <button class="btn-opt" onclick="showTakeaway()">🥡 سفري (خارجي)</button>
-    </div>
-    <div class="type-box" id="local-in" style="display:none;">
-        <h3>اختر رقم الطاولة</h3>
-        <select id="tbl-sel" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px;">
-            <option value="1">طاولة 1</option><option value="2">طاولة 2</option><option value="3">طاولة 3</option><option value="4">طاولة 4</option><option value="5">طاولة 5</option>
-        </select>
-        <button class="btn-opt" style="background:var(--p); color:white;" onclick="start('محلي')">تأكيد ودخول</button>
-    </div>
-    <div class="type-box" id="take-in" style="display:none;">
-        <h3>رقم الجوال</h3>
-        <input type="tel" id="phone-in" placeholder="05xxxxxxxx" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd; text-align:center;">
-        <button class="btn-opt" style="background:var(--p); color:white;" onclick="start('سفري')">تأكيد ودخول</button>
-    </div>
-</div>
-
-<div id="main-ui" style="display:none;">
-    <header>
-        <h1 style="margin:0; font-size:1.8em;">شاهي وليف</h1>
-        <div style="font-size:0.85em; opacity:0.9; margin-top:5px;">📍 حي النزهة | 📞 الإدارة</div>
-        <div id="info-tag" style="background:rgba(255,255,255,0.2); padding:6px 15px; border-radius:20px; margin-top:12px; display:inline-block; font-size:0.9em;"></div>
-    </header>
-    <div id="menu" style="padding:10px;"></div>
-    <div class="cart-bar">
-        <div>
-            <div id="total" style="font-size:1.3em; font-weight:bold;">0 ريال</div>
-            <div id="count" style="font-size:0.8em; opacity:0.8;">السلة فارغة</div>
-        </div>
-        <button onclick="send()" style="background:var(--p); border:none; color:white; padding:12px 25px; border-radius:15px; font-weight:bold; font-size:1.1em;">إرسال الطلب</button>
-    </div>
-</div>
-
-<div id="status-view">
-    <div style="background:white; padding:40px; border-radius:35px; border:2px solid var(--p); box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-        <h2 style="color:green;">تم استلام طلبك! ✅</h2>
-        <p>رقم الفاتورة</p>
-        <div id="invoice-id" style="font-size:3.5em; font-weight:900; color:var(--p);">#0000</div>
-        <div id="tracking-msg" style="margin-top:20px; font-size:1.2em;">⏳ الحالة: <strong>قيد التحضير</strong></div>
-    </div>
-</div>
-
-<script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
-      authDomain: "shahi-walif.firebaseapp.com",
-      projectId: "shahi-walif",
-      databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
-      storageBucket: "shahi-walif.firebasestorage.app",
-      messagingSenderId: "359593950202",
-      appId: "1:359593950202:web:9172faee5442536c49c243"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let type="", detail="", cart=[], total=0;
-
-    setTimeout(() => { document.getElementById('splash').style.display='none'; }, 2000);
-    
-    function showLocal() { document.getElementById('step-1').style.display='none'; document.getElementById('local-in').style.display='block'; }
-    function showTakeaway() { document.getElementById('step-1').style.display='none'; document.getElementById('take-in').style.display='block'; }
-
-    function start(t) {
-        type = t;
-        detail = (t === 'محلي') ? document.getElementById('tbl-sel').value : document.getElementById('phone-in').value;
-        if(!detail || (t === 'سفري' && detail.length < 10)) return alert("يرجى إكمال البيانات بشكل صحيح");
-        document.getElementById('order-type-overlay').style.display='none';
-        document.getElementById('main-ui').style.display='block';
-        document.getElementById('info-tag').innerText = `طلب ${t}: ${detail}`;
-        loadMenu();
-    }
-
-    function loadMenu() {
-        db.ref('menu').on('value', (snap) => {
-            const data = snap.val();
-            let h = '';
-            for(let id in data) {
-                h += `<div class="card">
-                    <div><b>${data[id].name}</b><br><small style="color:gray;">${data[id].category}</small><br><b>${data[id].price} ريال</b></div>
-                    <button onclick="add('${data[id].name}',${data[id].price})" style="background:var(--p); color:white; border:none; padding:10px 18px; border-radius:10px; font-weight:bold;">+</button>
-                </div>`;
-            }
-            document.getElementById('menu').innerHTML = h || '<p style="text-align:center; padding:50px;">جاري تحميل المنيو...</p>';
-        });
-    }
-
-    function add(n,p) { 
-        cart.push(n); 
-        total += p; 
-        document.getElementById('total').innerText = total + " ريال"; 
-        document.getElementById('count').innerText = cart.length + " أصناف في السلة";
-    }
-
-    function send() {
-        if(!cart.length) return alert("السلة فارغة!");
-        const note = prompt("هل لديك ملاحظات إضافية؟") || "لا يوجد";
-        const inv = Math.floor(Math.random()*9000)+1000;
-        db.ref('orders/'+inv).set({
-            inv, type, detail, items: cart, total, note, status:'pending', time: new Date().toLocaleTimeString('ar-SA')
-        }).then(() => {
-            document.getElementById('main-ui').style.display='none';
-            document.getElementById('status-view').style.display='block';
-            document.getElementById('invoice-id').innerText = "#" + inv;
-            listen(inv);
-        });
-    }
-
-    function listen(inv) {
-        db.ref('orders/'+inv+'/status').on('value', (s) => {
-            if(s.val() === 'ready') {
-                document.getElementById('tracking-msg').innerHTML = "🔥 <strong style='color:green;'>طلبك جاهز! تفضل باستلامه</strong>";
-                if(navigator.vibrate) navigator.vibrate(200);
-            }
-        });
-    }
-</script>
-</body>
-</html>
+        .btn-opt { display: block; width: 100%; padding:
