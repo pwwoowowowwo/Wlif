@@ -2,169 +2,276 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاهي وليف - المنيو الذكي</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كاشير شاهي وليف - النظام المتكامل</title>
     <style>
-        :root { --p: #8b4513; --bg: #fdfaf5; --text: #3e2723; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 180px; color: var(--text); }
-        
-        /* لوحة الترحيب */
-        #welcome-screen { position: fixed; inset: 0; background: var(--p); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: 0.8s; }
-        
-        header { background: var(--p); color: white; padding: 20px; text-align: center; border-radius: 0 0 25px 25px; }
-        .contact-info { font-size: 0.85em; margin-top: 8px; line-height: 1.6; opacity: 0.9; }
-        .social-link { color: #ffeb3b; text-decoration: none; font-weight: bold; }
+        :root { 
+            --bg: #e0e5ec;
+            --shadow-out: 6px 6px 12px #bebebe, -6px -6px 12px #ffffff;
+            --shadow-in: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+            --maroon: #800000;
+        }
 
-        .cat-title { background: #efe0d5; color: var(--p); padding: 10px 20px; font-weight: bold; margin-top: 15px; border-right: 5px solid var(--p); position: sticky; top: 0; z-index: 10; }
-        .card { background: white; padding: 15px; margin: 10px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .add-btn { background: var(--p); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; box-sizing: border-box; border-radius: 20px 20px 0 0; z-index: 1000; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
-        .type-selector { display: flex; gap: 10px; margin-bottom: 10px; }
-        .type-btn { flex: 1; padding: 10px; border: 2px solid var(--p); border-radius: 10px; background: white; color: var(--p); font-weight: bold; }
-        .type-btn.active { background: var(--p); color: white; }
-        .confirm-btn { width: 100%; background: #27ae60; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; background: var(--bg); overflow: hidden; }
 
-        #order-status-box { display: none; position: fixed; top: 15%; left: 10%; right: 10%; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); text-align: center; z-index: 4000; border: 3px solid var(--p); }
+        .app-container { display: flex; flex-direction: column; height: 100vh; }
+
+        /* الترويسة */
+        .top-nav { height: 50px; background: #1a1c23; color: white; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .tax-id { font-size: 11px; color: #aaa; }
+
+        /* شريط التبويبات المعلقة */
+        .hold-bar { display: flex; background: #cfd4da; padding: 2px 10px; gap: 5px; overflow-x: auto; flex-shrink: 0; height: 35px; }
+        .tab { padding: 5px 15px; border: none; border-radius: 8px 8px 0 0; background: #bdc3c7; cursor: pointer; font-size: 12px; }
+        .tab.active { background: var(--bg); color: var(--maroon); font-weight: bold; }
+
+        .main-area { flex-grow: 1; display: flex; overflow: hidden; padding: 10px; gap: 10px; }
+
+        /* يمين: الأصناف */
+        .menu-section { flex: 2; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+        .search-numpad-row { display: flex; gap: 10px; flex-shrink: 0; }
+        .search-in { flex: 1; padding: 12px; border: none; border-radius: 12px; box-shadow: var(--shadow-in); background: var(--bg); outline: none; }
+        
+        .quick-numpad { display: flex; gap: 5px; }
+        .num-btn { width: 45px; height: 45px; border-radius: 10px; border: none; background: white; box-shadow: var(--shadow-out); font-weight: bold; cursor: pointer; }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; overflow-y: auto; flex-grow: 1; padding: 10px; }
+        .p-card { background: white; border-radius: 15px; padding: 15px 5px; text-align: center; box-shadow: var(--shadow-out); border: none; cursor: pointer; transition: 0.2s; }
+        .p-card:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
+        .p-price { color: var(--maroon); font-weight: bold; display: block; margin-top: 5px; }
+
+        /* يسار: السلة */
+        .cart-section { flex: 0.9; min-width: 340px; display: flex; flex-direction: column; gap: 10px; }
+        .cart-box { background: var(--bg); border-radius: 20px; box-shadow: var(--shadow-out); padding: 15px; height: 100%; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #ccc; }
+
+        .bill-list { background: white; border-radius: 12px; padding: 10px; flex-grow: 1; overflow-y: auto; box-shadow: var(--shadow-in); }
+        .bill-item { padding: 10px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+
+        .summary { background: #fdfdfd; padding: 12px; border-radius: 12px; margin-top: 10px; box-shadow: var(--shadow-in); }
+        .sum-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; color: #555; }
+        
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; }
+        .btn-pay { background: #28a745; grid-column: span 2; font-size: 18px; box-shadow: 0 4px 10px rgba(40,167,69,0.3); }
+
+        /* نافذة الإضافات */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg); padding: 25px; border-radius: 25px; width: 380px; text-align: center; box-shadow: var(--shadow-out); }
+        .extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .extra-btn { padding: 12px; border-radius: 12px; border: none; background: white; box-shadow: var(--shadow-out); cursor: pointer; }
+        .extra-btn.selected { background: var(--maroon); color: white; }
     </style>
 </head>
 <body>
 
-<div id="welcome-screen">
-    <h1 style="font-size: 2.5em; margin:0;">شاهي وليف 🍵</h1>
-    <p>أهلاً بك في ضيافتنا</p>
+<div class="app-container">
+    <div class="top-nav">
+        <div>
+            <strong>🍃 شاهي وليف</strong>
+            <span class="tax-id"> | رقم ضريبي: 300012345600003</span>
+        </div>
+        <button onclick="showReport()" style="background:none; border:1px solid white; color:white; border-radius:8px; padding:5px 15px; cursor:pointer;">📊 التقرير</button>
+    </div>
+
+    <div class="hold-bar" id="holdBar"></div>
+
+    <div class="main-area">
+        <div class="menu-section">
+            <div class="search-numpad-row">
+                <input type="text" class="search-in" id="search" placeholder="🔍 ابحث عن صنف..." oninput="doSearch()">
+                <div class="quick-numpad">
+                    <button class="num-btn" onclick="setQty(1)">1</button>
+                    <button class="num-btn" onclick="setQty(5)">5</button>
+                    <button class="num-btn" onclick="setQty(10)">10</button>
+                    <span id="qty-indicator" style="align-self:center; font-weight:900; color:var(--maroon); margin-left:10px; font-size:20px;">x1</span>
+                </div>
+            </div>
+            <div class="products-grid" id="p-grid"></div>
+        </div>
+
+        <div class="cart-section">
+            <div class="cart-box">
+                <div class="bill-list" id="bill-content"></div>
+                
+                <div class="summary">
+                    <div class="sum-line"><span>المجموع (قبل الضريبة):</span><span id="subtotal">0.00 ﷼</span></div>
+                    <div class="sum-line"><span>الضريبة (15%):</span><span id="tax-amount">0.00 ﷼</span></div>
+                    <div class="sum-line" style="font-weight:900; font-size:20px; color:var(--maroon); border-top:1px dashed #ccc; padding-top:8px; margin-top:8px;">
+                        <span>الإجمالي:</span><span id="total">0.00 ﷼</span>
+                    </div>
+                </div>
+
+                <div class="action-btns">
+                    <button class="btn btn-pay" onclick="finishOrder()">✅ إتمام الطلب وطباعة</button>
+                    <button class="btn" style="background:#6c757d" onclick="holdCurrent()">⏸ تعليق الطلب</button>
+                    <button class="btn" style="background:#d97706" onclick="addExpense()">💸 تسجيل مصروف</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<header>
-    <h1 style="margin:0; font-size: 1.6em;">شاهي وليف 🍃</h1>
-    <div class="contact-info">
-        📍 المدينة المنورة <br>
-        📞 05xxxxxxxx <br>
-        📱 تيك توك: <a href="https://www.tiktok.com/@your_username" class="social-link">@shahi_walif</a>
+<!-- مودال الإضافات -->
+<div id="extraModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalName" style="color:var(--maroon)">خيارات المنتج</h3>
+        <div class="extra-grid" id="extraGrid"></div>
+        <button class="btn btn-pay" style="width:100%" onclick="confirmItem()">إضافة للفاتورة</button>
     </div>
-</header>
-
-<div id="order-status-box">
-    <h2 style="color: var(--p)">وصلنا طلبك! ✅</h2>
-    <div style="font-size: 1.4em; margin: 10px 0;">الفاتورة: <b id="st-inv">#---</b></div>
-    <div id="st-text" style="background: #fff3cd; padding: 10px; border-radius: 10px;">بإنتظار التأكيد...</div>
-    <button onclick="clearCacheAndReload()" style="margin-top:20px; background: var(--p); color: white; border:none; padding:12px; border-radius:10px; width: 100%;">طلب جديد</button>
-</div>
-
-<!-- هنا تظهر قائمة الأصناف تلقائياً -->
-<div id="menu-container"></div>
-
-<div class="bottom-nav">
-    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold;">
-        <span>الحساب: <span id="total-price">0</span> ريال</span>
-        <span>السلة: <span id="items-count">0</span> أصناف</span>
-    </div>
-    <div class="type-selector">
-        <button class="type-btn active" id="btn-local" onclick="setType('محلي')">🍽️ محلي</button>
-        <button class="type-btn" id="btn-away" onclick="setType('سفري')">🥡 سفري</button>
-    </div>
-    <button class="confirm-btn" onclick="processOrder()">إرسال الطلب 🚀</button>
 </div>
 
 <script>
-    // استخدم نفس إعدادات Firebase الخاصة بك هنا
-    const firebaseConfig = {
-      apiKey: "AIzaSyAaEOC1qMvjYL7QNaQz7p1HvpjDAn6sPt8",
-      authDomain: "shahi-walif.firebaseapp.com",
-      projectId: "shahi-walif",
-      databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com",
-      storageBucket: "shahi-walif.firebasestorage.app",
-      messagingSenderId: "359593950202",
-      appId: "1:359593950202:web:9172faee5442536c49c243"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const taxRate = 0.15;
+    // قائمة المنتجات بناءً على صورة المنيو المرسلة
+    const items = [
+        {name: "شاي احمر (صغير)", price: 2, extras: ['نعناع','حبق','سادة']},
+        {name: "شاي احمر (وسط)", price: 4, extras: ['نعناع','حبق','سادة']},
+        {name: "شاي احمر (زجاج)", price: 6, extras: ['نعناع','حبق','سادة']},
+        {name: "شاي وليف (صغير)", price: 2, extras: ['سكر زيادة','سكر قليل']},
+        {name: "شاي وليف (وسط)", price: 4, extras: ['سكر زيادة','سكر قليل']},
+        {name: "شاي وليف (زجاج)", price: 6, extras: ['سكر زيادة','سكر قليل']},
+        {name: "كرك", price: 5, extras: ['زنجبيل']},
+        {name: "اتاي", price: 5, extras: []},
+        {name: "زنجبيل وليمون", price: 5, extras: []},
+        {name: "برادي شاي", price: 12, extras: []},
+        {name: "فطيرة مكس 4 أجبان", price: 12, extras: []},
+        {name: "فطيرة جبنة سائلة", price: 8, extras: ['إضافة بطاطس عمان (+1)']},
+        {name: "فطيرة لبنة", price: 8, extras: ['إضافة عسل','إضافة زعتر']},
+        {name: "خلية نحل كلاسيك", price: 15, extras: []},
+        {name: "خلية نحل قرفة", price: 16, extras: []},
+        {name: "مكسرات عربية", price: 5, extras: []},
+        {name: "رغيفة سمسم", price: 2, extras: []},
+        {name: "ماء", price: 1, extras: []}
+    ];
 
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    let totalPrice = parseFloat(localStorage.getItem('totalPrice')) || 0;
-    let selectedType = localStorage.getItem('selectedType') || 'محلي';
+    let invoices = { 'الرئيسية': { items: [] } };
+    let activeTab = 'الرئيسية';
+    let currentQty = 1;
+    let tempItem = null;
+    let totalSales = 0;
+    let totalExpenses = 0;
 
-    window.onload = () => {
-        setTimeout(() => { document.getElementById('welcome-screen').style.display = 'none'; }, 1500);
-        updateUI();
-        setType(selectedType);
-        const lastInv = localStorage.getItem('lastInvoice');
-        if(lastInv) showStatus(lastInv);
-    };
-
-    // جلب الأصناف من قاعدة البيانات
-    db.ref('menu').on('value', (snap) => {
-        const data = snap.val();
-        const container = document.getElementById('menu-container');
-        container.innerHTML = "";
-        let cats = {};
-        for(let id in data) {
-            let c = data[id].category || "عام";
-            if(!cats[c]) cats[c] = [];
-            cats[c].push(data[id]);
-        }
-        for(let cName in cats) {
-            container.innerHTML += `<div class="cat-title">${cName}</div>`;
-            cats[cName].forEach(item => {
-                container.innerHTML += `
-                <div class="card">
-                    <div><b>${item.name}</b><br><small>${item.price} ريال</small></div>
-                    <button class="add-btn" onclick="addToCart('${item.name}', ${item.price})">إضافة +</button>
-                </div>`;
-            });
-        }
-    });
-
-    function setType(t) {
-        selectedType = t;
-        localStorage.setItem('selectedType', t);
-        document.getElementById('btn-local').classList.toggle('active', t === 'محلي');
-        document.getElementById('btn-away').classList.toggle('active', t === 'سفري');
+    function renderItems(list = items) {
+        document.getElementById('p-grid').innerHTML = list.map(i => `
+            <button class="p-card" onclick="openItem('${i.name}')">
+                <strong>${i.name}</strong>
+                <span class="p-price">${i.price} ﷼</span>
+            </button>`).join('');
     }
 
-    function addToCart(name, price) {
-        cart.push(name);
-        totalPrice += price;
-        localStorage.setItem('cart', JSON.stringify(cart));
-        localStorage.setItem('totalPrice', totalPrice);
+    function setQty(q) { 
+        currentQty = q; 
+        document.getElementById('qty-indicator').innerText = 'x' + q; 
+    }
+
+    function openItem(name) {
+        const item = items.find(i => i.name === name);
+        if(item.extras.length > 0) {
+            tempItem = { ...item, selectedExtras: [], extraPrice: 0 };
+            document.getElementById('modalName').innerText = name;
+            document.getElementById('extraGrid').innerHTML = item.extras.map(ex => `
+                <button class="extra-btn" onclick="toggleExtra(this, '${ex}')">${ex}</button>`).join('');
+            document.getElementById('extraModal').style.display = 'flex';
+        } else {
+            addToCart(item, []);
+        }
+    }
+
+    function toggleExtra(btn, ex) {
+        btn.classList.toggle('selected');
+        if(btn.classList.contains('selected')) {
+            tempItem.selectedExtras.push(ex);
+            if(ex.includes('+1')) tempItem.extraPrice += 1;
+        } else {
+            tempItem.selectedExtras = tempItem.selectedExtras.filter(e => e !== ex);
+            if(ex.includes('+1')) tempItem.extraPrice -= 1;
+        }
+    }
+
+    function confirmItem() {
+        const finalPrice = tempItem.price + (tempItem.extraPrice || 0);
+        addToCart({...tempItem, price: finalPrice}, tempItem.selectedExtras);
+        document.getElementById('extraModal').style.display = 'none';
+    }
+
+    function addToCart(item, extras) {
+        for(let i=0; i<currentQty; i++) {
+            invoices[activeTab].items.push({ ...item, selectedExtras: [...extras] });
+        }
+        setQty(1);
         updateUI();
     }
 
     function updateUI() {
-        document.getElementById('total-price').innerText = totalPrice;
-        document.getElementById('items-count').innerText = cart.length;
+        const bill = document.getElementById('bill-content');
+        const data = invoices[activeTab];
+        bill.innerHTML = data.items.length ? data.items.map((i, index) => `
+            <div class="bill-item">
+                <div>
+                    <b>${i.name}</b>
+                    ${i.selectedExtras.length ? `<br><small style="color:#777">${i.selectedExtras.join(', ')}</small>` : ''}
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span>${i.price.toFixed(2)} ﷼</span>
+                    <button onclick="removeItem(${index})" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
+                </div>
+            </div>`).join('') : '<center style="color:#999; margin-top:50px;">الفاتورة فارغة</center>';
+        
+        let subtotal = data.items.reduce((sum, item) => sum + item.price, 0);
+        let tax = subtotal * taxRate;
+        let total = subtotal + tax;
+
+        document.getElementById('subtotal').innerText = subtotal.toFixed(2) + " ﷼";
+        document.getElementById('tax-amount').innerText = tax.toFixed(2) + " ﷼";
+        document.getElementById('total').innerText = total.toFixed(2) + " ﷼";
+        renderTabs();
     }
 
-    function processOrder() {
-        if(cart.length === 0) return alert("السلة فارغة!");
-        let info = (selectedType === 'محلي') ? prompt("رقم الطاولة:") : prompt("رقم الجوال:");
-        if(!info) return;
-
-        const invoiceId = Math.floor(1000 + Math.random() * 9000);
-        db.ref('orders/' + invoiceId).set({
-            inv: invoiceId, type: selectedType, detail: info,
-            items: cart, total: totalPrice, status: 'pending',
-            time: new Date().toLocaleTimeString('ar-SA')
-        }).then(() => {
-            localStorage.setItem('lastInvoice', invoiceId);
-            showStatus(invoiceId);
-        });
+    function removeItem(index) {
+        invoices[activeTab].items.splice(index, 1);
+        updateUI();
     }
 
-    function showStatus(invId) {
-        document.getElementById('order-status-box').style.display = 'block';
-        document.getElementById('st-inv').innerText = "#" + invId;
-        db.ref('orders/' + invId + '/status').on('value', (snap) => {
-            const s = snap.val();
-            const label = document.getElementById('st-text');
-            if(s === 'pending') label.innerText = "⏳ قيد الانتظار...";
-            if(s === 'ready') label.innerText = "✅ طلبك جاهز!";
-        });
+    function holdCurrent() {
+        const newId = 'طلب ' + (Object.keys(invoices).length);
+        invoices[newId] = { items: [] };
+        activeTab = newId;
+        updateUI();
     }
 
-    function clearCacheAndReload() { localStorage.clear(); location.reload(); }
+    function renderTabs() {
+        document.getElementById('holdBar').innerHTML = Object.keys(invoices).map(id => `
+            <button class="tab ${activeTab === id ? 'active' : ''}" onclick="switchTab('${id}')">${id}</button>`).join('');
+    }
+
+    function switchTab(id) { activeTab = id; updateUI(); }
+
+    function finishOrder() {
+        if(!invoices[activeTab].items.length) return;
+        const total = parseFloat(document.getElementById('total').innerText);
+        totalSales += total;
+        alert("تم حفظ الفاتورة بنجاح\nالقيمة: " + total.toFixed(2) + " ﷼\nالرقم الضريبي: 300012345600003");
+        if(activeTab === 'الرئيسية') invoices['الرئيسية'].items = [];
+        else { delete invoices[activeTab]; activeTab = 'الرئيسية'; }
+        updateUI();
+    }
+
+    function addExpense() {
+        let amt = prompt("أدخل مبلغ المصروف النثري:");
+        if(amt && !isNaN(amt)) totalExpenses += parseFloat(amt);
+    }
+
+    function showReport() {
+        alert(`📊 ملخص وردية اليوم:\n----------------------\nإجمالي المبيعات: ${totalSales.toFixed(2)} ﷼\nإجمالي المصاريف: ${totalExpenses.toFixed(2)} ﷼\nالصافي المتوفر: ${(totalSales - totalExpenses).toFixed(2)} ﷼`);
+    }
+
+    function doSearch() {
+        const val = document.getElementById('search').value.toLowerCase();
+        renderItems(items.filter(i => i.name.toLowerCase().includes(val)));
+    }
+
+    window.onload = () => renderItems();
 </script>
 </body>
 </html>
