@@ -3,275 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كاشير شاهي وليف - النظام المتكامل</title>
+    <title>كاشير شاهي وليف Pro</title>
     <style>
-        :root { 
-            --bg: #e0e5ec;
-            --shadow-out: 6px 6px 12px #bebebe, -6px -6px 12px #ffffff;
-            --shadow-in: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
-            --maroon: #800000;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', sans-serif; }
-        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; background: var(--bg); overflow: hidden; }
-
-        .app-container { display: flex; flex-direction: column; height: 100vh; }
+        :root { --bg: #e0e5ec; --maroon: #800000; --shadow: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
         /* الترويسة */
-        .top-nav { height: 50px; background: #1a1c23; color: white; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        .tax-id { font-size: 11px; color: #aaa; }
+        header { height: 45px; background: #1a1c23; color: white; display: flex; align-items: center; padding: 0 15px; justify-content: space-between; font-size: 14px; }
 
-        /* شريط التبويبات المعلقة */
-        .hold-bar { display: flex; background: #cfd4da; padding: 2px 10px; gap: 5px; overflow-x: auto; flex-shrink: 0; height: 35px; }
-        .tab { padding: 5px 15px; border: none; border-radius: 8px 8px 0 0; background: #bdc3c7; cursor: pointer; font-size: 12px; }
-        .tab.active { background: var(--bg); color: var(--maroon); font-weight: bold; }
+        /* نظام الفواتير المعلقة */
+        .tabs-bar { display: flex; background: #cfd4da; padding: 3px 10px 0; gap: 4px; overflow-x: auto; }
+        .invoice-tab { padding: 6px 15px; border: none; border-radius: 10px 10px 0 0; background: #bdc3c7; cursor: pointer; font-size: 12px; }
+        .invoice-tab.active { background: var(--bg); color: var(--maroon); font-weight: bold; }
 
-        .main-area { flex-grow: 1; display: flex; overflow: hidden; padding: 10px; gap: 10px; }
+        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 8px; gap: 8px; }
 
-        /* يمين: الأصناف */
-        .menu-section { flex: 2; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
-        .search-numpad-row { display: flex; gap: 10px; flex-shrink: 0; }
-        .search-in { flex: 1; padding: 12px; border: none; border-radius: 12px; box-shadow: var(--shadow-in); background: var(--bg); outline: none; }
+        /* القسم الأيمن: المنتجات والكيبورد */
+        .menu-side { flex: 1.8; display: flex; flex-direction: column; gap: 8px; }
         
-        .quick-numpad { display: flex; gap: 5px; }
-        .num-btn { width: 45px; height: 45px; border-radius: 10px; border: none; background: white; box-shadow: var(--shadow-out); font-weight: bold; cursor: pointer; }
+        /* كيبورد الأرقام */
+        .numpad { display: flex; gap: 4px; background: white; padding: 6px; border-radius: 12px; box-shadow: var(--shadow); justify-content: center; }
+        .num-btn { width: 35px; height: 35px; border-radius: 8px; border: none; background: var(--bg); box-shadow: 2px 2px 5px #bebebe; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .num-btn.active { background: var(--maroon); color: white; }
 
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; overflow-y: auto; flex-grow: 1; padding: 10px; }
-        .p-card { background: white; border-radius: 15px; padding: 15px 5px; text-align: center; box-shadow: var(--shadow-out); border: none; cursor: pointer; transition: 0.2s; }
-        .p-card:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
-        .p-price { color: var(--maroon); font-weight: bold; display: block; margin-top: 5px; }
+        /* تصنيف الأصناف */
+        .category-bar { display: flex; gap: 5px; margin-bottom: 5px; }
+        .cat-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: white; box-shadow: var(--shadow); cursor: pointer; font-size: 13px; font-weight: bold; }
+        .cat-btn.active { background: var(--maroon); color: white; }
 
-        /* يسار: السلة */
-        .cart-section { flex: 0.9; min-width: 340px; display: flex; flex-direction: column; gap: 10px; }
-        .cart-box { background: var(--bg); border-radius: 20px; box-shadow: var(--shadow-out); padding: 15px; height: 100%; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #ccc; }
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; overflow-y: auto; padding: 5px; flex: 1; }
+        .item-card { background: white; border-radius: 12px; padding: 12px 5px; text-align: center; border: none; box-shadow: var(--shadow); cursor: pointer; font-size: 12px; }
+        .item-card b { display: block; color: var(--maroon); margin-top: 4px; }
 
-        .bill-list { background: white; border-radius: 12px; padding: 10px; flex-grow: 1; overflow-y: auto; box-shadow: var(--shadow-in); }
-        .bill-item { padding: 10px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-
-        .summary { background: #fdfdfd; padding: 12px; border-radius: 12px; margin-top: 10px; box-shadow: var(--shadow-in); }
-        .sum-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; color: #555; }
+        /* القسم الأيسر: السلة والدفع */
+        .cart-side { flex: 1; min-width: 300px; display: flex; flex-direction: column; background: white; border-radius: 15px; box-shadow: var(--shadow); padding: 10px; }
+        .cart-items { flex: 1; overflow-y: auto; border-bottom: 1px dashed #ccc; }
+        .cart-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f9f9f9; }
         
-        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; }
-        .btn-pay { background: #28a745; grid-column: span 2; font-size: 18px; box-shadow: 0 4px 10px rgba(40,167,69,0.3); }
+        .totals { padding: 10px 0; }
+        .total-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
+        
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .pay-btn { grid-column: span 2; background: #28a745; color: white; padding: 15px; border-radius: 10px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .hold-btn { background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; padding: 8px; }
+        .new-btn { background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; padding: 8px; }
 
-        /* نافذة الإضافات */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg); padding: 25px; border-radius: 25px; width: 380px; text-align: center; box-shadow: var(--shadow-out); }
-        .extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
-        .extra-btn { padding: 12px; border-radius: 12px; border: none; background: white; box-shadow: var(--shadow-out); cursor: pointer; }
-        .extra-btn.selected { background: var(--maroon); color: white; }
+        /* الطباعة */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; text-align: center; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="top-nav">
-        <div>
-            <strong>🍃 شاهي وليف</strong>
-            <span class="tax-id"> | رقم ضريبي: 300012345600003</span>
+<header>
+    <span>🍃 شاهي وليف | كاشير ذكي</span>
+    <small>الرقم الضريبي: 300012345600003</small>
+</header>
+
+<div class="tabs-bar" id="tabsBar"></div>
+
+<div class="main-layout">
+    <div class="menu-side">
+        <!-- كيبورد الأرقام -->
+        <div class="numpad" id="numpad">
+            <script>
+                for(let i=1; i<=10; i++) document.write(`<button class="num-btn ${i==1?'active':''}" onclick="setQty(${i}, this)">${i}</button>`);
+            </script>
         </div>
-        <button onclick="showReport()" style="background:none; border:1px solid white; color:white; border-radius:8px; padding:5px 15px; cursor:pointer;">📊 التقرير</button>
+
+        <!-- تصنيف الأصناف -->
+        <div class="category-bar">
+            <button class="cat-btn active" onclick="filterCat('شاهي', this)">🫖 شاهي</button>
+            <button class="cat-btn" onclick="filterCat('مخبوزات', this)">🥐 مخبوزات</button>
+            <button class="cat-btn" onclick="filterCat('جانبي', this)">🍿 إضافات</button>
+        </div>
+
+        <div class="items-grid" id="itemsGrid"></div>
     </div>
 
-    <div class="hold-bar" id="holdBar"></div>
-
-    <div class="main-area">
-        <div class="menu-section">
-            <div class="search-numpad-row">
-                <input type="text" class="search-in" id="search" placeholder="🔍 ابحث عن صنف..." oninput="doSearch()">
-                <div class="quick-numpad">
-                    <button class="num-btn" onclick="setQty(1)">1</button>
-                    <button class="num-btn" onclick="setQty(5)">5</button>
-                    <button class="num-btn" onclick="setQty(10)">10</button>
-                    <span id="qty-indicator" style="align-self:center; font-weight:900; color:var(--maroon); margin-left:10px; font-size:20px;">x1</span>
-                </div>
+    <div class="cart-side">
+        <h4 style="margin:0 0 10px; color:var(--maroon)">الفاتورة الحالية</h4>
+        <div class="cart-items" id="cartContent"></div>
+        
+        <div class="totals">
+            <div class="total-row"><span>المجموع:</span><span id="sub">0.00</span></div>
+            <div class="total-row"><span>الضريبة (15%):</span><span id="tax">0.00</span></div>
+            <div class="total-row" style="font-weight:bold; font-size:18px; border-top:1px solid #eee; padding-top:5px;">
+                <span>الإجمالي:</span><span id="grand">0.00</span>
             </div>
-            <div class="products-grid" id="p-grid"></div>
         </div>
 
-        <div class="cart-section">
-            <div class="cart-box">
-                <div class="bill-list" id="bill-content"></div>
-                
-                <div class="summary">
-                    <div class="sum-line"><span>المجموع (قبل الضريبة):</span><span id="subtotal">0.00 ﷼</span></div>
-                    <div class="sum-line"><span>الضريبة (15%):</span><span id="tax-amount">0.00 ﷼</span></div>
-                    <div class="sum-line" style="font-weight:900; font-size:20px; color:var(--maroon); border-top:1px dashed #ccc; padding-top:8px; margin-top:8px;">
-                        <span>الإجمالي:</span><span id="total">0.00 ﷼</span>
-                    </div>
-                </div>
-
-                <div class="action-btns">
-                    <button class="btn btn-pay" onclick="finishOrder()">✅ إتمام الطلب وطباعة</button>
-                    <button class="btn" style="background:#6c757d" onclick="holdCurrent()">⏸ تعليق الطلب</button>
-                    <button class="btn" style="background:#d97706" onclick="addExpense()">💸 تسجيل مصروف</button>
-                </div>
-            </div>
+        <div class="action-grid">
+            <button class="hold-btn" onclick="holdInvoice()">⏸ تعليق</button>
+            <button class="new-btn" onclick="newInvoice()">➕ فاتورة جديدة</button>
+            <button class="pay-btn" onclick="processPayment()">✅ دفع وطباعة</button>
         </div>
     </div>
 </div>
 
-<!-- مودال الإضافات -->
-<div id="extraModal" class="modal">
-    <div class="modal-content">
-        <h3 id="modalName" style="color:var(--maroon)">خيارات المنتج</h3>
-        <div class="extra-grid" id="extraGrid"></div>
-        <button class="btn btn-pay" style="width:100%" onclick="confirmItem()">إضافة للفاتورة</button>
-    </div>
-</div>
+<!-- منطقة الطباعة المخفية -->
+<div id="print-area" style="display:none"></div>
 
 <script>
-    const taxRate = 0.15;
-    // قائمة المنتجات بناءً على صورة المنيو المرسلة
-    const items = [
-        {name: "شاي احمر (صغير)", price: 2, extras: ['نعناع','حبق','سادة']},
-        {name: "شاي احمر (وسط)", price: 4, extras: ['نعناع','حبق','سادة']},
-        {name: "شاي احمر (زجاج)", price: 6, extras: ['نعناع','حبق','سادة']},
-        {name: "شاي وليف (صغير)", price: 2, extras: ['سكر زيادة','سكر قليل']},
-        {name: "شاي وليف (وسط)", price: 4, extras: ['سكر زيادة','سكر قليل']},
-        {name: "شاي وليف (زجاج)", price: 6, extras: ['سكر زيادة','سكر قليل']},
-        {name: "كرك", price: 5, extras: ['زنجبيل']},
-        {name: "اتاي", price: 5, extras: []},
-        {name: "زنجبيل وليمون", price: 5, extras: []},
-        {name: "برادي شاي", price: 12, extras: []},
-        {name: "فطيرة مكس 4 أجبان", price: 12, extras: []},
-        {name: "فطيرة جبنة سائلة", price: 8, extras: ['إضافة بطاطس عمان (+1)']},
-        {name: "فطيرة لبنة", price: 8, extras: ['إضافة عسل','إضافة زعتر']},
-        {name: "خلية نحل كلاسيك", price: 15, extras: []},
-        {name: "خلية نحل قرفة", price: 16, extras: []},
-        {name: "مكسرات عربية", price: 5, extras: []},
-        {name: "رغيفة سمسم", price: 2, extras: []},
-        {name: "ماء", price: 1, extras: []}
+    const allProducts = [
+        {name: "شاي احمر ص", price: 2, cat: "شاهي"}, {name: "شاي احمر و", price: 4, cat: "شاهي"}, {name: "شاي احمر ز", price: 6, cat: "شاهي"},
+        {name: "شاي وليف ص", price: 2, cat: "شاهي"}, {name: "شاي وليف و", price: 4, cat: "شاهي"}, {name: "شاي وليف ز", price: 6, cat: "شاهي"},
+        {name: "كرك", price: 5, cat: "شاهي"}, {name: "أتاي", price: 5, cat: "شاهي"}, {name: "زنجبيل ليمون", price: 5, cat: "شاهي"},
+        {name: "برادي", price: 12, cat: "شاهي"},
+        {name: "4 أجبان", price: 12, cat: "مخبوزات"}, {name: "جبنة سائلة", price: 8, cat: "مخبوزات"}, {name: "فطيرة لبنة", price: 8, cat: "مخبوزات"},
+        {name: "نحل كلاسيك", price: 15, cat: "مخبوزات"}, {name: "نحل قرفة", price: 16, cat: "مخبوزات"},
+        {name: "مكسرات", price: 5, cat: "جانبي"}, {name: "سمسم", price: 2, cat: "جانبي"}, {name: "ماء", price: 1, cat: "جانبي"}
     ];
 
-    let invoices = { 'الرئيسية': { items: [] } };
-    let activeTab = 'الرئيسية';
     let currentQty = 1;
-    let tempItem = null;
-    let totalSales = 0;
-    let totalExpenses = 0;
+    let invoices = { "1": [] };
+    let activeInv = "1";
 
-    function renderItems(list = items) {
-        document.getElementById('p-grid').innerHTML = list.map(i => `
-            <button class="p-card" onclick="openItem('${i.name}')">
-                <strong>${i.name}</strong>
-                <span class="p-price">${i.price} ﷼</span>
+    function setQty(n, btn) {
+        currentQty = n;
+        document.querySelectorAll('.num-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function filterCat(cat, btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filtered = allProducts.filter(p => p.cat === cat);
+        document.getElementById('itemsGrid').innerHTML = filtered.map(p => `
+            <button class="item-card" onclick="addToCart('${p.name}', ${p.price})">
+                ${p.name} <b>${p.price} ﷼</b>
             </button>`).join('');
     }
 
-    function setQty(q) { 
-        currentQty = q; 
-        document.getElementById('qty-indicator').innerText = 'x' + q; 
-    }
-
-    function openItem(name) {
-        const item = items.find(i => i.name === name);
-        if(item.extras.length > 0) {
-            tempItem = { ...item, selectedExtras: [], extraPrice: 0 };
-            document.getElementById('modalName').innerText = name;
-            document.getElementById('extraGrid').innerHTML = item.extras.map(ex => `
-                <button class="extra-btn" onclick="toggleExtra(this, '${ex}')">${ex}</button>`).join('');
-            document.getElementById('extraModal').style.display = 'flex';
-        } else {
-            addToCart(item, []);
-        }
-    }
-
-    function toggleExtra(btn, ex) {
-        btn.classList.toggle('selected');
-        if(btn.classList.contains('selected')) {
-            tempItem.selectedExtras.push(ex);
-            if(ex.includes('+1')) tempItem.extraPrice += 1;
-        } else {
-            tempItem.selectedExtras = tempItem.selectedExtras.filter(e => e !== ex);
-            if(ex.includes('+1')) tempItem.extraPrice -= 1;
-        }
-    }
-
-    function confirmItem() {
-        const finalPrice = tempItem.price + (tempItem.extraPrice || 0);
-        addToCart({...tempItem, price: finalPrice}, tempItem.selectedExtras);
-        document.getElementById('extraModal').style.display = 'none';
-    }
-
-    function addToCart(item, extras) {
-        for(let i=0; i<currentQty; i++) {
-            invoices[activeTab].items.push({ ...item, selectedExtras: [...extras] });
-        }
-        setQty(1);
+    function addToCart(name, price) {
+        for(let i=0; i<currentQty; i++) invoices[activeInv].push({name, price});
         updateUI();
     }
 
     function updateUI() {
-        const bill = document.getElementById('bill-content');
-        const data = invoices[activeTab];
-        bill.innerHTML = data.items.length ? data.items.map((i, index) => `
-            <div class="bill-item">
-                <div>
-                    <b>${i.name}</b>
-                    ${i.selectedExtras.length ? `<br><small style="color:#777">${i.selectedExtras.join(', ')}</small>` : ''}
-                </div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span>${i.price.toFixed(2)} ﷼</span>
-                    <button onclick="removeItem(${index})" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
-                </div>
-            </div>`).join('') : '<center style="color:#999; margin-top:50px;">الفاتورة فارغة</center>';
+        const content = document.getElementById('cartContent');
+        content.innerHTML = invoices[activeInv].map((item, idx) => `
+            <div class="cart-row"><span>${item.name}</span> <span>${item.price} <button onclick="remove(${idx})" style="border:none; color:red; background:none;">✕</button></span></div>
+        `).join('');
         
-        let subtotal = data.items.reduce((sum, item) => sum + item.price, 0);
-        let tax = subtotal * taxRate;
-        let total = subtotal + tax;
-
-        document.getElementById('subtotal').innerText = subtotal.toFixed(2) + " ﷼";
-        document.getElementById('tax-amount').innerText = tax.toFixed(2) + " ﷼";
-        document.getElementById('total').innerText = total.toFixed(2) + " ﷼";
+        let sub = invoices[activeInv].reduce((s, i) => s + i.price, 0);
+        let tax = sub * 0.15;
+        document.getElementById('sub').innerText = sub.toFixed(2);
+        document.getElementById('tax').innerText = tax.toFixed(2);
+        document.getElementById('grand').innerText = (sub + tax).toFixed(2);
         renderTabs();
     }
 
-    function removeItem(index) {
-        invoices[activeTab].items.splice(index, 1);
-        updateUI();
-    }
+    function remove(idx) { invoices[activeInv].splice(idx, 1); updateUI(); }
 
-    function holdCurrent() {
-        const newId = 'طلب ' + (Object.keys(invoices).length);
-        invoices[newId] = { items: [] };
-        activeTab = newId;
+    function newInvoice() {
+        let id = Date.now().toString().slice(-4);
+        invoices[id] = [];
+        activeInv = id;
         updateUI();
     }
 
     function renderTabs() {
-        document.getElementById('holdBar').innerHTML = Object.keys(invoices).map(id => `
-            <button class="tab ${activeTab === id ? 'active' : ''}" onclick="switchTab('${id}')">${id}</button>`).join('');
+        document.getElementById('tabsBar').innerHTML = Object.keys(invoices).map(id => `
+            <button class="invoice-tab ${activeInv==id?'active':''}" onclick="activeInv='${id}'; updateUI()">فاتورة ${id}</button>
+        `).join('');
     }
 
-    function switchTab(id) { activeTab = id; updateUI(); }
+    function processPayment() {
+        if(invoices[activeInv].length === 0) return;
+        const total = document.getElementById('grand').innerText;
+        
+        // تجهيز الطباعة
+        let printHTML = `<h3>شاهي وليف</h3><p>رقم الفاتورة: ${activeInv}</p><hr>`;
+        invoices[activeInv].forEach(i => printHTML += `<p>${i.name} - ${i.price} ﷼</p>`);
+        printHTML += `<hr><b>الإجمالي: ${total} ﷼</b><br><small>شامل الضريبة 15%</small>`;
+        
+        document.getElementById('print-area').innerHTML = printHTML;
+        window.print();
 
-    function finishOrder() {
-        if(!invoices[activeTab].items.length) return;
-        const total = parseFloat(document.getElementById('total').innerText);
-        totalSales += total;
-        alert("تم حفظ الفاتورة بنجاح\nالقيمة: " + total.toFixed(2) + " ﷼\nالرقم الضريبي: 300012345600003");
-        if(activeTab === 'الرئيسية') invoices['الرئيسية'].items = [];
-        else { delete invoices[activeTab]; activeTab = 'الرئيسية'; }
+        delete invoices[activeInv];
+        if(Object.keys(invoices).length === 0) invoices["1"] = [];
+        activeInv = Object.keys(invoices)[0];
         updateUI();
     }
 
-    function addExpense() {
-        let amt = prompt("أدخل مبلغ المصروف النثري:");
-        if(amt && !isNaN(amt)) totalExpenses += parseFloat(amt);
-    }
-
-    function showReport() {
-        alert(`📊 ملخص وردية اليوم:\n----------------------\nإجمالي المبيعات: ${totalSales.toFixed(2)} ﷼\nإجمالي المصاريف: ${totalExpenses.toFixed(2)} ﷼\nالصافي المتوفر: ${(totalSales - totalExpenses).toFixed(2)} ﷼`);
-    }
-
-    function doSearch() {
-        const val = document.getElementById('search').value.toLowerCase();
-        renderItems(items.filter(i => i.name.toLowerCase().includes(val)));
-    }
-
-    window.onload = () => renderItems();
+    window.onload = () => filterCat('شاهي', document.querySelector('.cat-btn'));
 </script>
 </body>
 </html>
