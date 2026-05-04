@@ -26,16 +26,16 @@
         .item-card { background: white; border-radius: 10px; aspect-ratio: 1/0.9; display: flex; flex-direction: column; justify-content: center; align-items: center; border: none; box-shadow: var(--shadow); cursor: pointer; text-align: center; padding: 5px; }
         .item-card b { color: var(--maroon); font-size: 2vmin; margin-top: 4px; }
 
-        /* منطقة السلة - تصغير 50% وعرض مرن */
-        .cart-side { flex: 0.8; min-width: 140px; background: white; border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; padding: 1vh; border-top: 5px solid var(--maroon); align-self: flex-start; }
-        .cart-items { flex-grow: 1; overflow-y: auto; font-size: 1.7vmin; margin-bottom: 1vh; max-height: 40vh; }
+        /* منطقة السلة - مصغرة بنسبة 50% مع طول مرن */
+        .cart-side { flex: 0.8; min-width: 150px; background: white; border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; padding: 1vh; border-top: 5px solid var(--maroon); align-self: flex-start; max-height: 90vh; }
+        .cart-items { flex-grow: 1; overflow-y: auto; font-size: 1.7vmin; margin-bottom: 1vh; }
         .cart-row { display: flex; justify-content: space-between; padding: 0.6vh 0; border-bottom: 1px solid #f9f9f9; }
 
         .totals-area { background: #fdfdfd; padding: 1vh; border-radius: 8px; border: 1px solid #eee; margin-bottom: 1vh; }
         .total-line { display: flex; justify-content: space-between; font-size: 1.6vmin; }
         .final-price { font-size: 2.5vmin; font-weight: bold; color: var(--maroon); text-align: center; border-top: 2px solid #eee; margin-top: 5px; }
 
-        /* أزرار التحكم والدفع */
+        /* أزرار التحكم وطرق الدفع */
         .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 1vh; }
         .method-btn { padding: 0.8vh; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 1.5vmin; }
         .method-btn.active { background: #e3f2fd; border-color: #2196f3; font-weight: bold; }
@@ -45,12 +45,12 @@
         .btn-hold { background: #ffa000; color: white; border: none; padding: 0.8vh; border-radius: 6px; cursor: pointer; font-size: 1.5vmin; }
         .btn-report { background: #455a64; color: white; border: none; padding: 0.8vh; border-radius: 6px; cursor: pointer; font-size: 1.5vmin; }
 
+        /* تنسيق الفاتورة للطابعة الحرارية */
         @media print {
             body * { visibility: hidden; }
             #thermal-receipt, #thermal-receipt * { visibility: visible; }
-            #thermal-receipt { position: absolute; left: 0; top: 0; width: 80mm; padding: 2mm; font-size: 12pt; line-height: 1.2; }
-            .receipt-center { text-align: center; }
-            .receipt-line { display: flex; justify-content: space-between; }
+            #thermal-receipt { position: absolute; left: 0; top: 0; width: 80mm; padding: 2mm; font-size: 12pt; line-height: 1.2; text-align: center; }
+            .receipt-line { display: flex; justify-content: space-between; text-align: right; }
         }
     </style>
 </head>
@@ -72,7 +72,7 @@
     </div>
 
     <div class="cart-side">
-        <div style="font-weight: bold; text-align: center; border-bottom: 1px solid #eee;">السلة</div>
+        <div style="font-weight: bold; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 5px;">السلة</div>
         <div id="cartList" class="cart-items"></div>
         
         <div class="totals-area">
@@ -97,15 +97,24 @@
 <div id="thermal-receipt" style="display:none"></div>
 
 <script>
+    // القائمة المحدثة بناءً على صورة المنيو
     const products = [
+        // أصناف الشاهي (صغير، وسط، زجاج)
         { name: "شاهي أحمر (ص)", price: 2, cat: "tea" }, { name: "شاهي أحمر (و)", price: 4, cat: "tea" }, { name: "شاهي أحمر (ز)", price: 6, cat: "tea" },
         { name: "شاهي وليف (ص)", price: 2, cat: "tea" }, { name: "شاهي وليف (و)", price: 4, cat: "tea" }, { name: "شاهي وليف (ز)", price: 6, cat: "tea" },
         { name: "شاهي مدخن (ص)", price: 2, cat: "tea" }, { name: "شاهي مدخن (و)", price: 4, cat: "tea" }, { name: "شاهي مدخن (ز)", price: 6, cat: "tea" },
+        { name: "شاهي أخضر (ص)", price: 2, cat: "tea" }, { name: "شاهي أخضر (و)", price: 4, cat: "tea" }, { name: "شاهي أخضر (ز)", price: 6, cat: "tea" },
         { name: "كرك", price: 5, cat: "tea" }, { name: "أتاي", price: 5, cat: "tea" }, { name: "زنجبيل وليمون", price: 5, cat: "tea" },
-        { name: "برادي شاهي", price: 12, cat: "tea" }, 
+        { name: "برادي شاهي", price: 12, cat: "tea" }, { name: "برادي شاهي أخضر", price: 12, cat: "tea" },
+
+        // المخبوزات
         { name: "فطيرة مكس 4 أجبان", price: 12, cat: "bakery" }, { name: "فطيرة جبنة سائلة", price: 8, cat: "bakery" },
+        { name: "فطيرة لبنة", price: 8, cat: "bakery" }, { name: "فطيرة شيدر", price: 8, cat: "bakery" },
         { name: "خلية نحل كلاسيك", price: 15, cat: "bakery" }, { name: "خلية نحل قرفة", price: 16, cat: "bakery" },
-        { name: "مكسرات عربية", price: 5, cat: "sides" }, { name: "ماء", price: 1, cat: "sides" }
+
+        // طلبات جانبية
+        { name: "مكسرات عربية", price: 5, cat: "sides" }, { name: "مكسرات يابانية", price: 5, cat: "sides" },
+        { name: "رغيفة سمسم", price: 2, cat: "sides" }, { name: "بسكوت مالح", price: 2, cat: "sides" }, { name: "ماء", price: 1, cat: "sides" }
     ];
 
     let cart = [];
@@ -141,9 +150,9 @@
     function completeSale() {
         if (!cart.length) return;
         const total = document.getElementById('grandTotal').innerText;
-        let receipt = `<div class="receipt-center"><h3>شاهي وليف 🍃</h3><p>الرقم الضريبي: 300012345600003</p><hr></div>`;
+        let receipt = `<h3>شاهي وليف 🍃</h3><p>الرقم الضريبي: 300012345600003</p><hr>`;
         cart.forEach(item => { receipt += `<div class="receipt-line"><span>${item.name}</span><span>${item.price.toFixed(2)}</span></div>`; });
-        receipt += `<hr><div class="receipt-line"><b>الإجمالي</b><b>${total} ﷼</b></div><div class="receipt-center"><p>الدفع: ${paymentMethod}</p></div>`;
+        receipt += `<hr><div class="receipt-line"><b>الإجمالي</b><b>${total} ﷼</b></div><p>طريقة الدفع: ${paymentMethod}</p>`;
         document.getElementById('thermal-receipt').innerHTML = receipt;
         window.print();
         salesHistory.push({ total: parseFloat(total) });
@@ -152,7 +161,7 @@
     }
 
     function holdCurrent() { if(cart.length) { cart = []; renderCart(); alert("تم تعليق الطلب"); } }
-    function showSales() { let t = salesHistory.reduce((s, r) => s + r.total, 0); alert(`إجمالي اليوم: ${t.toFixed(2)} ﷼`); }
+    function showSales() { let t = salesHistory.reduce((s, r) => s + r.total, 0); alert(`إجمالي مبيعات اليوم: ${t.toFixed(2)} ﷼`); }
 
     window.onload = () => filterCat('tea', document.querySelector('.cat-btn.tea'));
 </script>
