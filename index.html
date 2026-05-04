@@ -3,51 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كاشير شاهي وليف - مرونة كاملة</title>
+    <title>كاشير شاهي وليف الذكي</title>
     <style>
-        :root { --bg: #e0e5ec; --maroon: #800000; --shadow: 1px 1px 3px #bebebe, -1px -1px 3px #ffffff; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root { --bg: #f4f7f6; --maroon: #800000; --shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        body { background: var(--bg); margin: 0; min-height: 100vh; display: flex; flex-direction: column; font-size: 2.2vmin; overflow-y: auto; }
+        body { background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        header { height: 6vh; background: #1a1c23; color: white; display: flex; align-items: center; padding: 0 2vw; justify-content: space-between; font-size: 2.5vmin; }
+        header { height: 6vh; background: #1a1c23; color: white; display: flex; align-items: center; padding: 0 2vw; justify-content: space-between; font-size: 2.2vmin; }
 
-        /* التصميم الجديد يعتمد على الترتيب الرأسي المرن */
-        .main-layout { display: flex; flex-direction: row; flex-wrap: wrap; padding: 1vh; gap: 1vw; }
+        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 1vh; gap: 1vw; }
 
-        /* يمين: المنتجات */
-        .menu-side { flex: 3; min-width: 300px; display: flex; flex-direction: column; gap: 1vh; }
+        /* منطقة المنتجات - مكبرة */
+        .menu-side { flex: 3.5; display: flex; flex-direction: column; gap: 1vh; overflow-y: auto; }
         
-        .category-bar { display: flex; gap: 1vw; margin-bottom: 1vh; }
-        .cat-btn { flex: 1; padding: 1.5vh; border-radius: 8px; border: none; box-shadow: var(--shadow); font-size: 2.5vmin; font-weight: bold; cursor: pointer; }
+        .category-bar { display: flex; gap: 1vw; position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 1vh; }
+        .cat-btn { flex: 1; padding: 1.5vh; border-radius: 8px; border: none; box-shadow: var(--shadow); font-weight: bold; cursor: pointer; font-size: 2vmin; }
         .cat-btn.tea { background: #d4e157; color: #33691e; }
         .cat-btn.bakery { background: #ffcc80; color: #e65100; }
         .cat-btn.sides { background: #81d4fa; color: #01579b; }
         .cat-btn.active { background: var(--maroon) !important; color: white !important; }
 
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1vh; }
-        .item-card { background: white; border-radius: 8px; aspect-ratio: 1/1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: none; box-shadow: var(--shadow); font-size: 2vmin; padding: 1vh; cursor: pointer; }
-        .item-card b { color: var(--maroon); font-size: 2.2vmin; }
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1vh; }
+        .item-card { background: white; border-radius: 10px; aspect-ratio: 1/0.9; display: flex; flex-direction: column; justify-content: center; align-items: center; border: none; box-shadow: var(--shadow); cursor: pointer; text-align: center; padding: 5px; }
+        .item-card span { font-size: 1.8vmin; font-weight: 500; }
+        .item-card b { color: var(--maroon); font-size: 2vmin; margin-top: 4px; }
 
-        /* يسار: السلة - طول غير ثابت */
-        .cart-side { flex: 0.8; min-width: 160px; background: white; border-radius: 12px; box-shadow: var(--shadow); padding: 1.5vh; border-top: 4px solid var(--maroon); align-self: flex-start; }
-        
-        /* السلة سيتمدد طولها تلقائياً مع المحتوى */
-        .cart-items { margin-bottom: 1.5vh; }
-        .cart-row { display: flex; justify-content: space-between; padding: 0.8vh 0; border-bottom: 1px solid #eee; font-size: 2vmin; }
-        
-        .totals-section { background: #f9f9f9; padding: 1vh; border-radius: 8px; margin-bottom: 1.5vh; }
-        .total-row { display: flex; justify-content: space-between; font-size: 1.8vmin; margin-bottom: 0.5vh; }
-        .grand-total { font-size: 3vmin; font-weight: bold; color: var(--maroon); text-align: center; border-top: 1px solid #ddd; padding-top: 0.8vh; }
+        /* منطقة السلة - مصغرة ومرنة */
+        .cart-side { flex: 1.2; background: white; border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; padding: 1vh; border-top: 5px solid var(--maroon); }
+        .cart-header { font-weight: bold; text-align: center; padding-bottom: 0.5vh; border-bottom: 1px solid #eee; margin-bottom: 1vh; }
+        .cart-items { flex: 1; overflow-y: auto; margin-bottom: 1vh; font-size: 1.7vmin; }
+        .cart-row { display: flex; justify-content: space-between; padding: 0.6vh 0; border-bottom: 1px solid #f9f9f9; }
 
-        .action-grid { display: grid; gap: 1vh; }
-        .pay-btn { background: #2e7d32; color: white; padding: 2vh; border-radius: 8px; border: none; font-size: 2.8vmin; font-weight: bold; cursor: pointer; width: 100%; }
-        .report-btn { background: #455a64; color: white; padding: 1vh; border-radius: 6px; border: none; font-size: 1.8vmin; cursor: pointer; opacity: 0.8; }
+        .totals-area { background: #fdfdfd; padding: 1vh; border-radius: 8px; border: 1px solid #eee; }
+        .total-line { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 1.6vmin; }
+        .final-price { font-size: 2.8vmin; font-weight: bold; color: var(--maroon); text-align: center; margin-top: 5px; padding-top: 5px; border-top: 2px solid #eee; }
 
+        /* خيارات الدفع والتعليق */
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 1vh 0; }
+        .method-btn { padding: 1vh; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 1.6vmin; }
+        .method-btn.active { background: #e3f2fd; border-color: #2196f3; font-weight: bold; }
+
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .btn-pay { grid-column: span 2; background: #2e7d32; color: white; padding: 1.5vh; border: none; border-radius: 8px; font-weight: bold; font-size: 2.2vmin; cursor: pointer; }
+        .btn-hold { background: #ffa000; color: white; border: none; padding: 1vh; border-radius: 6px; cursor: pointer; font-size: 1.6vmin; }
+        .btn-report { background: #455a64; color: white; border: none; padding: 1vh; border-radius: 6px; cursor: pointer; font-size: 1.6vmin; }
+
+        /* تنسيق الطباعة الحرارية */
         @media print {
             body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; text-align: center; }
+            #thermal-receipt, #thermal-receipt * { visibility: visible; }
+            #thermal-receipt { position: absolute; left: 0; top: 0; width: 80mm; padding: 2mm; font-size: 12pt; line-height: 1.2; font-family: 'Courier New', Courier, monospace; }
+            .receipt-center { text-align: center; }
+            .receipt-line { display: flex; justify-content: space-between; }
+            hr { border: 1px dashed black; }
         }
     </style>
 </head>
@@ -55,108 +64,159 @@
 
 <header>
     <span>🍃 شاهي وليف | POS</span>
-    <span style="color: #ffeb3b; font-weight: bold;">الرقم الضريبي: 300012345600003</span>
+    <span style="color: #ffeb3b;">الرقم الضريبي: 300012345600003</span>
 </header>
 
 <div class="main-layout">
-    <!-- منطقة المنتجات -->
     <div class="menu-side">
         <div class="category-bar">
-            <button class="cat-btn tea active" onclick="filterCat('شاهي', this)">قسم الشاهي</button>
-            <button class="cat-btn bakery" onclick="filterCat('مخبوزات', this)">قسم المخبوزات</button>
-            <button class="cat-btn sides" onclick="filterCat('جانبي', this)">إضافات أخرى</button>
+            <button class="cat-btn tea active" onclick="filterCat('tea', this)">الشاهي</button>
+            <button class="cat-btn bakery" onclick="filterCat('bakery', this)">المخبوزات</button>
+            <button class="cat-btn sides" onclick="filterCat('sides', this)">طلبات جانبية</button>
         </div>
-        <div class="items-grid" id="itemsGrid"></div>
+        <div id="itemsGrid" class="items-grid"></div>
     </div>
 
-    <!-- السلة المرنة -->
     <div class="cart-side">
-        <div style="font-weight: bold; text-align: center; border-bottom: 2px solid #eee; margin-bottom: 1vh; padding-bottom: 0.5vh;">السلة</div>
-        <div id="cartContent" class="cart-items"></div>
+        <div class="cart-header">الفاتورة الحالية</div>
+        <div id="cartList" class="cart-items"></div>
         
-        <div class="totals-section">
-            <div class="total-row"><span>المجموع:</span><span id="sub">0.00</span></div>
-            <div class="total-row"><span>الضريبة (15%):</span><span id="tax">0.00</span></div>
-            <div class="grand-total"><span id="grand">0.00</span> ﷼</div>
+        <div class="totals-area">
+            <div class="total-line"><span>المجموع الأساسي:</span><span id="subTotal">0.00</span></div>
+            <div class="total-line"><span>الضريبة (15%):</span><span id="taxAmount">0.00</span></div>
+            <div class="final-price"><span id="grandTotal">0.00</span> ﷼</div>
         </div>
 
-        <div class="action-grid">
-            <button class="pay-btn" onclick="processPayment()">طباعة الفاتورة ✅</button>
-            <button class="report-btn" onclick="showReport()">📊 إجمالي مبيعات اليوم</button>
+        <div class="payment-methods">
+            <button class="method-btn active" id="btnCash" onclick="setPayment('نقدي')">💵 نقدي</button>
+            <button class="method-btn" id="btnCard" onclick="setPayment('شبكة')">💳 شبكة</button>
+        </div>
+
+        <div class="action-btns">
+            <button class="btn-pay" onclick="completeSale()">طباعة الفاتورة ✅</button>
+            <button class="btn-hold" onclick="holdCurrent()">تعليق طلب</button>
+            <button class="btn-report" onclick="showSales()">مبيعات اليوم</button>
         </div>
     </div>
 </div>
 
-<div id="print-area" style="display:none"></div>
+<!-- حاوية الطباعة الحرارية المخفية -->
+<div id="thermal-receipt" style="display:none"></div>
 
 <script>
-    const allProducts = [
-        {name: "شاهي أحمر ص", price: 2, cat: "شاهي"}, {name: "شاهي أحمر و", price: 4, cat: "شاهي"}, {name: "شاهي أحمر ز", price: 6, cat: "شاهي"},
-        {name: "شاهي وليف ص", price: 2, cat: "شاهي"}, {name: "شاهي وليف و", price: 4, cat: "شاهي"}, {name: "شاهي وليف ز", price: 6, cat: "شاهي"},
-        {name: "شاهي مدخن ص", price: 2, cat: "شاهي"}, {name: "شاهي مدخن و", price: 4, cat: "شاهي"}, {name: "شاهي مدخن ز", price: 6, cat: "شاهي"},
-        {name: "كرك", price: 5, cat: "شاهي"}, {name: "أتاي مغربي", price: 5, cat: "شاهي"},
-        {name: "نحل كلاسيك", price: 15, cat: "مخبوزات"}, {name: "نحل قرفة", price: 16, cat: "مخبوزات"}, {name: "جبنة سائلة", price: 8, cat: "مخبوزات"},
-        {name: "مكسرات علبة", price: 5, cat: "جانبي"}, {name: "ماء", price: 1, cat: "جانبي"}
+    const products = [
+        // الشاهي بناءً على الصورة
+        { name: "شاهي أحمر (صغير)", price: 2, cat: "tea" }, { name: "شاهي أحمر (وسط)", price: 4, cat: "tea" }, { name: "شاهي أحمر (زجاج)", price: 6, cat: "tea" },
+        { name: "شاهي وليف (صغير)", price: 2, cat: "tea" }, { name: "شاهي وليف (وسط)", price: 4, cat: "tea" }, { name: "شاهي وليف (زجاج)", price: 6, cat: "tea" },
+        { name: "شاهي مدخن (صغير)", price: 2, cat: "tea" }, { name: "شاهي مدخن (وسط)", price: 4, cat: "tea" }, { name: "شاهي مدخن (زجاج)", price: 6, cat: "tea" },
+        { name: "شاهي أخضر (صغير)", price: 2, cat: "tea" }, { name: "شاهي أخضر (وسط)", price: 4, cat: "tea" }, { name: "شاهي أخضر (زجاج)", price: 6, cat: "tea" },
+        { name: "كرك", price: 5, cat: "tea" }, { name: "أتاي", price: 5, cat: "tea" }, { name: "زنجبيل وليمون", price: 5, cat: "tea" },
+        { name: "برادي شاهي", price: 12, cat: "tea" }, { name: "برادي شاهي أخضر", price: 12, cat: "tea" },
+        
+        // المخبوزات
+        { name: "فطيرة مكس 4 أجبان", price: 12, cat: "bakery" }, { name: "فطيرة جبنة سائلة", price: 8, cat: "bakery" },
+        { name: "فطيرة لبنة", price: 8, cat: "bakery" }, { name: "فطيرة شيدر", price: 8, cat: "bakery" },
+        { name: "خلية نحل كلاسيك", price: 15, cat: "bakery" }, { name: "خلية نحل قرفة", price: 16, cat: "bakery" },
+
+        // طلبات جانبية
+        { name: "مكسرات عربية", price: 5, cat: "sides" }, { name: "مكسرات يابانية", price: 5, cat: "sides" },
+        { name: "رغيفة سمسم", price: 2, cat: "sides" }, { name: "بسكوت مالح", price: 2, cat: "sides" }, { name: "ماء", price: 1, cat: "sides" }
     ];
 
-    let currentCart = [];
-    let salesLog = JSON.parse(localStorage.getItem('salesLog')) || [];
+    let cart = [];
+    let paymentMethod = 'نقدي';
+    let heldInvoices = [];
+    let salesHistory = JSON.parse(localStorage.getItem('shahi_sales')) || [];
 
     function filterCat(cat, btn) {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const filtered = allProducts.filter(p => p.cat === cat);
-        document.getElementById('itemsGrid').innerHTML = filtered.map(p => `
-            <button class="item-card" onclick="addToCart('${p.name}', ${p.price})">
-                <span>${p.name}</span> <b>${p.price}</b>
-            </button>`).join('');
+        const grid = document.getElementById('itemsGrid');
+        grid.innerHTML = products.filter(p => p.cat === cat).map(p => `
+            <div class="item-card" onclick="addToCart('${p.name}', ${p.price})">
+                <span>${p.name}</span>
+                <b>${p.price} ﷼</b>
+            </div>
+        `).join('');
     }
 
     function addToCart(name, price) {
-        currentCart.push({name, price});
-        updateUI();
+        cart.push({ name, price });
+        renderCart();
     }
 
-    function updateUI() {
-        const content = document.getElementById('cartContent');
-        content.innerHTML = currentCart.length ? currentCart.map((item, idx) => `
+    function renderCart() {
+        const list = document.getElementById('cartList');
+        list.innerHTML = cart.map((item, i) => `
             <div class="cart-row">
-                <span>${item.name}</span> 
-                <span>${item.price} <small onclick="remove(${idx})" style="color:red; cursor:pointer; margin-right:5px">✕</small></span>
+                <span>${item.name}</span>
+                <span>${item.price} <small onclick="removeItem(${i})" style="color:red; cursor:pointer">✕</small></span>
             </div>
-        `).join('') : '<div style="text-align:center; color:#999; padding:2vh">السلة فارغة</div>';
+        `).join('');
         
-        let sub = currentCart.reduce((s, i) => s + i.price, 0);
+        let sub = cart.reduce((total, item) => total + item.price, 0);
         let tax = sub * 0.15;
-        document.getElementById('sub').innerText = sub.toFixed(2);
-        document.getElementById('tax').innerText = tax.toFixed(2);
-        document.getElementById('grand').innerText = (sub + tax).toFixed(2);
+        document.getElementById('subTotal').innerText = sub.toFixed(2);
+        document.getElementById('taxAmount').innerText = tax.toFixed(2);
+        document.getElementById('grandTotal').innerText = (sub + tax).toFixed(2);
     }
 
-    function remove(idx) { currentCart.splice(idx, 1); updateUI(); }
+    function removeItem(i) { cart.splice(i, 1); renderCart(); }
 
-    function processPayment() {
-        if(currentCart.length === 0) return;
-        const total = document.getElementById('grand').innerText;
-        salesLog.push({ total: parseFloat(total) });
-        localStorage.setItem('salesLog', JSON.stringify(salesLog));
+    function setPayment(method) {
+        paymentMethod = method;
+        document.getElementById('btnCash').classList.toggle('active', method === 'نقدي');
+        document.getElementById('btnCard').classList.toggle('active', method === 'شبكة');
+    }
 
-        let printHTML = `<h3>شاهي وليف 🍃</h3><p>الرقم الضريبي: 300012345600003</p><hr>`;
-        currentCart.forEach(i => printHTML += `<div style="display:flex; justify-content:space-between"><span>${i.name}</span><span>${i.price} ﷼</span></div>`);
-        printHTML += `<hr><h4>الإجمالي: ${total} ﷼</h4>`;
+    function completeSale() {
+        if (!cart.length) return;
+        const total = document.getElementById('grandTotal').innerText;
         
-        document.getElementById('print-area').innerHTML = printHTML;
+        // تجهيز الفاتورة للطباعة الحرارية
+        let now = new Date().toLocaleString('ar-SA');
+        let receipt = `
+            <div class="receipt-center">
+                <h2>شاهي وليف 🍃</h2>
+                <p>الرقم الضريبي: 300012345600003</p>
+                <p>تاريخ: ${now}</p>
+                <hr>
+            </div>
+        `;
+        cart.forEach(item => {
+            receipt += `<div class="receipt-line"><span>${item.name}</span><span>${item.price.toFixed(2)}</span></div>`;
+        });
+        receipt += `
+            <hr>
+            <div class="receipt-line"><b>الإجمالي (شامل الضريبة)</b><b>${total} ﷼</b></div>
+            <div class="receipt-center"><p>طريقة الدفع: ${paymentMethod}</p><p>شكراً لزيارتكم</p></div>
+        `;
+        
+        document.getElementById('thermal-receipt').innerHTML = receipt;
         window.print();
-        currentCart = [];
-        updateUI();
+
+        // حفظ العملية في السجل
+        salesHistory.push({ time: now, total: parseFloat(total), method: paymentMethod });
+        localStorage.setItem('shahi_sales', JSON.stringify(salesHistory));
+
+        cart = [];
+        renderCart();
     }
 
-    function showReport() {
-        let dailyTotal = salesLog.reduce((s, r) => s + r.total, 0);
-        alert(`مبيعات اليوم: ${dailyTotal.toFixed(2)} ﷼`);
+    function holdCurrent() {
+        if (!cart.length) return;
+        heldInvoices.push({ items: [...cart], time: new Date().toLocaleTimeString() });
+        cart = [];
+        renderCart();
+        alert("تم تعليق الفاتورة بنجاح");
     }
 
-    window.onload = () => filterCat('شاهي', document.querySelector('.cat-btn.tea'));
+    function showSales() {
+        let totalVal = salesHistory.reduce((s, r) => s + r.total, 0);
+        alert(`إجمالي المبيعات المحفوظة: ${totalVal.toFixed(2)} ﷼\nعدد العمليات: ${salesHistory.length}`);
+    }
+
+    window.onload = () => filterCat('tea', document.querySelector('.cat-btn.tea'));
 </script>
 </body>
 </html>
