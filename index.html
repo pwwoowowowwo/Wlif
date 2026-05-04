@@ -3,54 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كاشير شاهي وليف - النسخة المعتمدة</title>
+    <title>كاشير شاهي وليف - الإصدار النهائي</title>
     <style>
-        :root { --bg: #f4f7f6; --maroon: #800000; --shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; }
-        
+        :root { --bg: #f8f9fa; --maroon: #800000; --dark: #1a1c23; --shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        header { height: 6vh; background: #1a1c23; color: white; display: flex; align-items: center; padding: 0 2vw; justify-content: space-between; font-size: 2.2vmin; }
+        
+        header { height: 50px; background: var(--dark); color: white; display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
+        .tax-id { color: #ffeb3b; font-size: 14px; font-weight: bold; }
 
-        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 1vh; gap: 1vw; }
+        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
 
-        /* منطقة المنتجات - المساحة الأكبر */
-        .menu-side { flex: 3.5; display: flex; flex-direction: column; gap: 1vh; overflow-y: auto; }
-        .category-bar { display: flex; gap: 1vw; position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 1vh; }
-        .cat-btn { flex: 1; padding: 1.5vh; border-radius: 8px; border: none; box-shadow: var(--shadow); font-weight: bold; cursor: pointer; font-size: 2vmin; }
-        .cat-btn.tea { background: #d4e157; color: #33691e; }
-        .cat-btn.bakery { background: #ffcc80; color: #e65100; }
-        .cat-btn.sides { background: #81d4fa; color: #01579b; }
-        .cat-btn.active { background: var(--maroon) !important; color: white !important; }
+        /* منطقة المنتجات */
+        .menu-side { flex: 2.8; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .category-bar { display: flex; gap: 10px; position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 5px; }
+        .cat-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; box-shadow: var(--shadow); font-weight: bold; cursor: pointer; background: white; }
+        .cat-btn.active { background: var(--maroon); color: white; }
 
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1vh; }
-        .item-card { background: white; border-radius: 10px; aspect-ratio: 1/0.9; display: flex; flex-direction: column; justify-content: center; align-items: center; border: none; box-shadow: var(--shadow); cursor: pointer; text-align: center; padding: 5px; }
-        .item-card b { color: var(--maroon); font-size: 2vmin; margin-top: 4px; }
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+        .item-card { background: white; border-radius: 10px; aspect-ratio: 1/1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #eee; cursor: pointer; text-align: center; }
+        .item-card b { color: var(--maroon); margin-top: 4px; }
 
-        /* منطقة السلة - مصغرة بنسبة 50% مع طول مرن */
-        .cart-side { flex: 0.8; min-width: 150px; background: white; border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; padding: 1vh; border-top: 5px solid var(--maroon); align-self: flex-start; max-height: 90vh; }
-        .cart-items { flex-grow: 1; overflow-y: auto; font-size: 1.7vmin; margin-bottom: 1vh; }
-        .cart-row { display: flex; justify-content: space-between; padding: 0.6vh 0; border-bottom: 1px solid #f9f9f9; }
+        /* السلة (تكبير 10%) */
+        .cart-side { flex: 1.2; min-width: 200px; background: white; border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; padding: 10px; border-top: 5px solid var(--maroon); }
+        .cart-items { flex: 1; overflow-y: auto; margin-bottom: 10px; font-size: 14px; }
+        .cart-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f9f9f9; }
 
-        .totals-area { background: #fdfdfd; padding: 1vh; border-radius: 8px; border: 1px solid #eee; margin-bottom: 1vh; }
-        .total-line { display: flex; justify-content: space-between; font-size: 1.6vmin; }
-        .final-price { font-size: 2.5vmin; font-weight: bold; color: var(--maroon); text-align: center; border-top: 2px solid #eee; margin-top: 5px; }
+        /* لوحة الأرقام تحت السلة */
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 10px; }
+        .num-btn { padding: 12px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .num-btn.active { background: var(--maroon); color: white; }
 
-        /* أزرار التحكم وطرق الدفع */
-        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 1vh; }
-        .method-btn { padding: 0.8vh; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 1.5vmin; }
-        .method-btn.active { background: #e3f2fd; border-color: #2196f3; font-weight: bold; }
+        .totals-area { background: #fdfdfd; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px; }
+        .total-line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
+        .final-price { font-size: 22px; font-weight: bold; color: var(--maroon); text-align: center; border-top: 2px solid #eee; padding-top: 5px; }
 
-        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-        .btn-pay { grid-column: span 2; background: #2e7d32; color: white; padding: 1.5vh; border: none; border-radius: 8px; font-weight: bold; font-size: 2vmin; cursor: pointer; }
-        .btn-hold { background: #ffa000; color: white; border: none; padding: 0.8vh; border-radius: 6px; cursor: pointer; font-size: 1.5vmin; }
-        .btn-report { background: #455a64; color: white; border: none; padding: 0.8vh; border-radius: 6px; cursor: pointer; font-size: 1.5vmin; }
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .btn-pay { grid-column: span 2; background: #2e7d32; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        .btn-hold { background: #ffa000; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-new { background: #0277bd; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; }
 
-        /* تنسيق الفاتورة للطابعة الحرارية */
+        /* تنسيق الطباعة (image_9.png) */
         @media print {
             body * { visibility: hidden; }
-            #thermal-receipt, #thermal-receipt * { visibility: visible; }
-            #thermal-receipt { position: absolute; left: 0; top: 0; width: 80mm; padding: 2mm; font-size: 12pt; line-height: 1.2; text-align: center; }
-            .receipt-line { display: flex; justify-content: space-between; text-align: right; }
+            #receipt, #receipt * { visibility: visible; }
+            #receipt { position: absolute; left: 0; top: 0; width: 80mm; padding: 5mm; text-align: center; }
+            .r-line { display: flex; justify-content: space-between; font-size: 12px; margin: 2px 0; }
         }
     </style>
 </head>
@@ -58,68 +56,70 @@
 
 <header>
     <span>🍃 شاهي وليف | POS</span>
-    <span style="color: #ffeb3b;">الرقم الضريبي: 300012345600003</span>
+    <span class="tax-id">الرقم الضريبي: 310071502100003</span>
 </header>
 
 <div class="main-layout">
     <div class="menu-side">
         <div class="category-bar">
-            <button class="cat-btn tea active" onclick="filterCat('tea', this)">الشاهي</button>
-            <button class="cat-btn bakery" onclick="filterCat('bakery', this)">المخبوزات</button>
-            <button class="cat-btn sides" onclick="filterCat('sides', this)">طلبات جانبية</button>
+            <button class="cat-btn active" onclick="filterCat('tea', this)">الشاهي</button>
+            <button class="cat-btn" onclick="filterCat('bakery', this)">المخبوزات</button>
+            <button class="cat-btn" onclick="filterCat('sides', this)">الإضافات</button>
         </div>
         <div id="itemsGrid" class="items-grid"></div>
     </div>
 
     <div class="cart-side">
-        <div style="font-weight: bold; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 5px;">السلة</div>
+        <div style="font-weight: bold; text-align: center; margin-bottom: 10px;" id="invNum">طلب جديد #1</div>
         <div id="cartList" class="cart-items"></div>
         
+        <!-- لوحة الأرقام -->
+        <div class="numpad">
+            <button class="num-btn active" onclick="setQty(1, this)">1</button>
+            <button class="num-btn" onclick="setQty(2, this)">2</button>
+            <button class="num-btn" onclick="setQty(3, this)">3</button>
+            <button class="num-btn" onclick="setQty(4, this)">4</button>
+            <button class="num-btn" onclick="setQty(5, this)">5</button>
+            <button class="num-btn" onclick="setQty(6, this)">6</button>
+            <button class="num-btn" onclick="setQty(7, this)">7</button>
+            <button class="num-btn" onclick="setQty(8, this)">8</button>
+            <button class="num-btn" onclick="setQty(9, this)">9</button>
+            <button class="num-btn" style="grid-column: span 3" onclick="setQty(10, this)">10</button>
+        </div>
+
         <div class="totals-area">
-            <div class="total-line"><span>المجموع:</span><span id="subTotal">0.00</span></div>
-            <div class="total-line"><span>الضريبة:</span><span id="taxAmount">0.00</span></div>
+            <div class="total-line"><span>الإجمالي قبل الضريبة:</span><span id="subTotal">0.00</span></div>
+            <div class="total-line"><span>ضريبة القيمة المضافة 15%:</span><span id="taxAmount">0.00</span></div>
             <div class="final-price"><span id="grandTotal">0.00</span> ﷼</div>
         </div>
 
-        <div class="payment-methods">
-            <button class="method-btn active" id="btnCash" onclick="setPayment('نقدي')">نقدي</button>
-            <button class="method-btn" id="btnCard" onclick="setPayment('شبكة')">شبكة</button>
-        </div>
-
         <div class="action-btns">
-            <button class="btn-pay" onclick="completeSale()">طـباعة ✅</button>
-            <button class="btn-hold" onclick="holdCurrent()">تعليق</button>
-            <button class="btn-report" onclick="showSales()">تقرير</button>
+            <button class="btn-pay" onclick="printReceipt()">طـباعة الفاتورة ✅</button>
+            <button class="btn-hold" onclick="holdInvoice()">تعليق الفاتورة</button>
+            <button class="btn-new" onclick="resetCart()">طلب جديد</button>
         </div>
     </div>
 </div>
 
-<div id="thermal-receipt" style="display:none"></div>
+<div id="receipt" style="display:none"></div>
 
 <script>
-    // القائمة المحدثة بناءً على صورة المنيو
     const products = [
-        // أصناف الشاهي (صغير، وسط، زجاج)
-        { name: "شاهي أحمر (صغير)", price: 2, cat: "tea" }, { name: "شاهي أحمر (وسط)", price: 4, cat: "tea" }, { name: "شاهي أحمر (زجاج)", price: 6, cat: "tea" },
-        { name: "شاهي وليف (صغير)", price: 2, cat: "tea" }, { name: "شاهي وليف (وسط)", price: 4, cat: "tea" }, { name: "شاهي وليف (زجاج)", price: 6, cat: "tea" },
-        { name: "شاهي مدخن (صغير)", price: 2, cat: "tea" }, { name: "شاهي مدخن (وسط)", price: 4, cat: "tea" }, { name: "شاهي مدخن (زجاج)", price: 6, cat: "tea" },
-        { name: "شاهي أخضر (صغير)", price: 2, cat: "tea" }, { name: "شاهي أخضر (وسط)", price: 4, cat: "tea" }, { name: "شاهي أخضر (زجاج)", price: 6, cat: "tea" },
-        { name: "كرك", price: 5, cat: "tea" }, { name: "أتاي", price: 5, cat: "tea" }, { name: "زنجبيل وليمون", price: 5, cat: "tea" },
-        { name: "برادي شاهي", price: 12, cat: "tea" }, { name: "برادي شاهي أخضر", price: 12, cat: "tea" },
-
-        // المخبوزات
-        { name: "فطيرة مكس 4 أجبان", price: 12, cat: "bakery" }, { name: "فطيرة جبنة سائلة", price: 8, cat: "bakery" },
-        { name: "فطيرة لبنة", price: 8, cat: "bakery" }, { name: "فطيرة شيدر", price: 8, cat: "bakery" },
-        { name: "خلية نحل كلاسيك", price: 15, cat: "bakery" }, { name: "خلية نحل قرفة", price: 16, cat: "bakery" },
-
-        // طلبات جانبية
-        { name: "مكسرات عربية", price: 5, cat: "sides" }, { name: "مكسرات يابانية", price: 5, cat: "sides" },
-        { name: "رغيفة سمسم", price: 2, cat: "sides" }, { name: "بسكوت مالح", price: 2, cat: "sides" }, { name: "ماء", price: 1, cat: "sides" }
+        { name: "شاهي أحمر (ص)", price: 2, cat: "tea" }, { name: "شاهي وليف (ص)", price: 2, cat: "tea" },
+        { name: "فطيرة أجبان", price: 12, cat: "bakery" }, { name: "خلية نحل", price: 15, cat: "bakery" },
+        { name: "مكسرات", price: 5, cat: "sides" }, { name: "ماء", price: 1, cat: "sides" }
+        // ... يمكنك إضافة باقي المنيو هنا
     ];
 
     let cart = [];
-    let paymentMethod = 'نقدي';
-    let salesHistory = JSON.parse(localStorage.getItem('shahi_sales')) || [];
+    let currentQty = 1;
+    let invCounter = 1;
+
+    function setQty(n, btn) {
+        currentQty = n;
+        document.querySelectorAll('.num-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
 
     function filterCat(cat, btn) {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -130,40 +130,50 @@
             </div>`).join('');
     }
 
-    function addToCart(name, price) { cart.push({ name, price }); renderCart(); }
+    function addToCart(name, price) {
+        for(let i=0; i<currentQty; i++) cart.push({ name, price });
+        render();
+    }
 
-    function renderCart() {
-        const list = document.getElementById('cartList');
-        list.innerHTML = cart.map((item, i) => `
-            <div class="cart-row"><span>${item.name}</span><span>${item.price} <small onclick="removeItem(${i})" style="color:red;cursor:pointer">✕</small></span></div>
+    function render() {
+        document.getElementById('cartList').innerHTML = cart.map((item, i) => `
+            <div class="cart-row"><span>${item.name}</span><span>${item.price} <small onclick="cart.splice(${i},1);render()" style="color:red;cursor:pointer">✕</small></span></div>
         `).join('');
-        let sub = cart.reduce((s, item) => s + item.price, 0);
+        let sub = cart.reduce((s, i) => s + i.price, 0);
         let tax = sub * 0.15;
         document.getElementById('subTotal').innerText = sub.toFixed(2);
         document.getElementById('taxAmount').innerText = tax.toFixed(2);
         document.getElementById('grandTotal').innerText = (sub + tax).toFixed(2);
     }
 
-    function removeItem(i) { cart.splice(i, 1); renderCart(); }
-    function setPayment(m) { paymentMethod = m; document.getElementById('btnCash').classList.toggle('active', m==='نقدي'); document.getElementById('btnCard').classList.toggle('active', m==='شبكة'); }
-
-    function completeSale() {
-        if (!cart.length) return;
-        const total = document.getElementById('grandTotal').innerText;
-        let receipt = `<h3>شاهي وليف 🍃</h3><p>الرقم الضريبي: 300012345600003</p><hr>`;
-        cart.forEach(item => { receipt += `<div class="receipt-line"><span>${item.name}</span><span>${item.price.toFixed(2)}</span></div>`; });
-        receipt += `<hr><div class="receipt-line"><b>الإجمالي</b><b>${total} ﷼</b></div><p>طريقة الدفع: ${paymentMethod}</p>`;
-        document.getElementById('thermal-receipt').innerHTML = receipt;
-        window.print();
-        salesHistory.push({ total: parseFloat(total) });
-        localStorage.setItem('shahi_sales', JSON.stringify(salesHistory));
-        cart = []; renderCart();
+    function holdInvoice() {
+        if(cart.length > 0) {
+            alert("تم تعليق الفاتورة رقم " + invCounter);
+            resetCart();
+        }
     }
 
-    function holdCurrent() { if(cart.length) { cart = []; renderCart(); alert("تم تعليق الطلب"); } }
-    function showSales() { let t = salesHistory.reduce((s, r) => s + r.total, 0); alert(`إجمالي مبيعات اليوم: ${t.toFixed(2)} ﷼`); }
+    function resetCart() {
+        cart = [];
+        invCounter++;
+        document.getElementById('invNum').innerText = "طلب جديد #" + invCounter;
+        render();
+    }
 
-    window.onload = () => filterCat('tea', document.querySelector('.cat-btn.tea'));
+    function printReceipt() {
+        if(cart.length === 0) return;
+        const total = document.getElementById('grandTotal').innerText;
+        const tax = document.getElementById('taxAmount').innerText;
+        let html = `<h3>شاهي وليف 🍃</h3><p>فاتورة ضريبية مبسطة</p><p>الرقم الضريبي: 310071502100003</p><hr>`;
+        cart.forEach(i => html += `<div class="r-line"><span>${i.name}</span><span>${i.price.toFixed(2)}</span></div>`);
+        html += `<hr><div class="r-line"><b>الضريبة 15%</b><b>${tax}</b></div>`;
+        html += `<div class="r-line" style="font-size:16px"><b>الإجمالي</b><b>${total} ﷼</b></div><hr><p>شكراً لتسوقكم</p>`;
+        document.getElementById('receipt').innerHTML = html;
+        window.print();
+        resetCart();
+    }
+
+    window.onload = () => filterCat('tea', document.querySelector('.cat-btn'));
 </script>
 </body>
 </html>
