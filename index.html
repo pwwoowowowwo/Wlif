@@ -9,26 +9,23 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         header { height: 50px; background: var(--maroon); color: white; display: flex; align-items: center; padding: 0 15px; justify-content: space-between; }
-        .header-btns { display: flex; gap: 10px; }
-        .report-btn { background: var(--gold); border: none; padding: 8px 12px; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; }
+        .header-btns { display: flex; gap: 8px; }
+        .report-btn { background: var(--gold); border: none; padding: 8px 12px; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; font-size: 13px; }
         
         .main-layout { display: flex; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
         
-        /* قسم المنتجات */
         .menu-side { flex: 3; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
         .category-bar { display: flex; gap: 8px; position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 10px; overflow-x: auto; }
         .cat-btn { padding: 12px 18px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; cursor: pointer; background: white; white-space: nowrap; }
         .cat-btn.active { background: var(--maroon); color: white; }
         .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-        .item-card { background: white; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid #ddd; cursor: pointer; text-align: center; }
+        .item-card { background: white; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid #ddd; cursor: pointer; text-align: center; position: relative; }
         .item-card b { color: var(--maroon); font-size: 15px; margin-top: 5px; }
 
-        /* قسم السلة المعدل */
         .cart-side { flex: 1.5; min-width: 320px; background: white; border-radius: 15px; display: flex; flex-direction: column; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); height: fit-content; max-height: 95%; }
         .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; }
         
-        /* السلة تبدأ بنسبة 50% وتتمدد */
-        .cart-items-container { min-height: 100px; max-height: 40vh; overflow-y: auto; margin-bottom: 10px; }
+        .cart-items-container { min-height: 80px; max-height: 40vh; overflow-y: auto; margin-bottom: 10px; }
         .cart-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
         
         .numpad-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 10px; }
@@ -43,17 +40,20 @@
         .btn-hold { background: #ff9800; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-pay { grid-column: span 2; background: #2e7d32; color: white; padding: 18px; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
         
-        /* مودالات */
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99; }
         .custom-modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; width:90%; max-width:400px; padding:20px; border-radius:15px; z-index:100; box-shadow:0 0 20px rgba(0,0,0,0.5); }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
         @media print { body * { visibility: hidden; } #receipt, #receipt * { visibility: visible; } }
     </style>
 </head>
 <body>
 
 <header>
-    <span>🍃 شاهي وليف | كاشير</span>
+    <span>🍃 شاهي وليف | الإدارة</span>
     <div class="header-btns">
+        <button class="report-btn" style="background:#2196f3" onclick="openAddModal()">➕ صنف جديد</button>
         <button class="report-btn" style="background:#455a64" onclick="showHoldList()">📂 المعلقة</button>
         <button class="report-btn" onclick="showReport()">📊 التقارير</button>
     </div>
@@ -61,7 +61,7 @@
 
 <div class="main-layout">
     <div class="menu-side">
-        <div class="category-bar">
+        <div class="category-bar" id="catBar">
             <button class="cat-btn active" onclick="filterCat('tea', this)">شاي</button>
             <button class="cat-btn" onclick="filterCat('karak', this)">كرك</button>
             <button class="cat-btn" onclick="filterCat('bakery', this)">مخبوزات</button>
@@ -73,7 +73,7 @@
     <div class="cart-side">
         <div class="cart-header">
             <span style="color:var(--maroon); font-weight:bold;">فاتورة #<span id="invDisplay">1</span></span>
-            <span id="currentTime" style="font-size:12px; color:#888;"></span>
+            <span id="currentTime" style="font-size:11px; color:#888;"></span>
         </div>
         
         <div class="cart-items-container" id="cartList">
@@ -106,7 +106,31 @@
     </div>
 </div>
 
-<!-- المودالات -->
+<!-- مودال إضافة صنف -->
+<div id="addModal" class="custom-modal">
+    <h3 style="text-align:center;">➕ إضافة صنف جديد</h3>
+    <div class="input-group">
+        <label>اسم الصنف</label>
+        <input type="text" id="pName" placeholder="مثال: شاي بالنعناع">
+    </div>
+    <div class="input-group">
+        <label>السعر (﷼)</label>
+        <input type="number" id="pPrice" placeholder="0.00">
+    </div>
+    <div class="input-group">
+        <label>القسم</label>
+        <select id="pCat">
+            <option value="tea">شاي</option>
+            <option value="karak">كرك</option>
+            <option value="bakery">مخبوزات</option>
+            <option value="sides">جانبية</option>
+        </select>
+    </div>
+    <button class="btn-pay" style="padding:12px;" onclick="saveNewProduct()">حفظ الصنف</button>
+    <button class="report-btn" style="width:100%; margin-top:8px; background:#888" onclick="closeModals()">إغلاق</button>
+</div>
+
+<!-- المودالات الأخرى -->
 <div class="modal-overlay" id="overlay" onclick="closeModals()"></div>
 <div id="reportModal" class="custom-modal">
     <h3 style="text-align:center; color:var(--maroon)">📊 تقرير المبيعات</h3>
@@ -116,30 +140,52 @@
 
 <div id="holdModal" class="custom-modal">
     <h3 style="text-align:center;">📂 فواتير معلقة</h3>
-    <div id="holdList" style="max-height:200px; overflow-y:auto;"></div>
+    <div id="holdList"></div>
 </div>
 
 <div id="receipt" style="display:none"></div>
 
 <script>
-    const products = [
-        { name: "شاي احمر ص", price: 2, cat: "tea" }, { name: "شاي احمر و", price: 4, cat: "tea" },
-        { name: "شاي وليف ص", price: 2, cat: "tea" }, { name: "شاي وليف و", price: 4, cat: "tea" },
-        { name: "كرك", price: 5, cat: "karak" }, { name: "زنجبيل", price: 5, cat: "karak" },
-        { name: "فطيرة أجبان", price: 12, cat: "bakery" }, { name: "خلية نحل", price: 15, cat: "bakery" },
-        { name: "مكسرات", price: 5, cat: "sides" }, { name: "ماء", price: 1, cat: "sides" }
+    // الأصناف الافتراضية
+    let defaultProducts = [
+        { name: "شاي احمر ص", price: 2, cat: "tea" }, { name: "شاي وليف ص", price: 2, cat: "tea" },
+        { name: "كرك", price: 5, cat: "karak" }, { name: "فطيرة أجبان", price: 12, cat: "bakery" },
+        { name: "ماء", price: 1, cat: "sides" }
     ];
 
-    let cart = [], currentQty = 1, payMethod = "نقدي";
+    let products = JSON.parse(localStorage.getItem('shahi_products')) || defaultProducts;
+    let cart = [], currentQty = 1, payMethod = "نقدي", currentCat = 'tea';
     let salesData = JSON.parse(localStorage.getItem('shahi_sales')) || [];
     let holdInvoices = JSON.parse(localStorage.getItem('shahi_holds')) || [];
 
-    // تحديث رقم الفاتورة وعداد الوقت
     function updateMeta() {
         document.getElementById('invDisplay').innerText = salesData.length + 1;
         document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('ar-SA');
     }
     setInterval(updateMeta, 1000);
+
+    function openAddModal() {
+        document.getElementById('addModal').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    function saveNewProduct() {
+        const name = document.getElementById('pName').value;
+        const price = parseFloat(document.getElementById('pPrice').value);
+        const cat = document.getElementById('pCat').value;
+
+        if(!name || !price) return alert("يرجى إكمال البيانات");
+
+        products.push({ name, price, cat });
+        localStorage.setItem('shahi_products', JSON.stringify(products));
+        
+        document.getElementById('pName').value = '';
+        document.getElementById('pPrice').value = '';
+        
+        filterCat(currentCat, document.querySelector(`.cat-btn.active`));
+        closeModals();
+        alert("تم إضافة الصنف بنجاح");
+    }
 
     function setQty(n, btn) {
         if(n === 0) { cart = []; render(); return; }
@@ -155,6 +201,7 @@
     }
 
     function filterCat(cat, btn) {
+        currentCat = cat;
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('itemsGrid').innerHTML = products.filter(p => p.cat === cat).map(p => `
@@ -170,35 +217,27 @@
 
     function render() {
         const list = document.getElementById('cartList');
-        if(cart.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#ccc; margin-top:20px;">السلة فارغة</p>';
-        } else {
-            list.innerHTML = cart.map((item, i) => `
-                <div class="cart-row">
-                    <span>${item.name}</span>
-                    <span>${item.price.toFixed(2)} <small style="color:red" onclick="cart.splice(${i},1);render()">✕</small></span>
-                </div>`).join('');
-        }
+        list.innerHTML = cart.length === 0 ? '<p style="text-align:center; color:#ccc; margin-top:20px;">السلة فارغة</p>' : 
+            cart.map((item, i) => `<div class="cart-row"><span>${item.name}</span><span>${item.price.toFixed(2)} <small style="color:red" onclick="cart.splice(${i},1);render()">✕</small></span></div>`).join('');
+        
         let total = cart.reduce((s, i) => s + i.price, 0) * 1.15;
         document.getElementById('grandTotal').innerText = total.toFixed(2);
     }
 
-    // ميزة تعليق الفاتورة
     function holdInvoice() {
         if(cart.length === 0) return;
         holdInvoices.push({ items: [...cart], time: new Date().toLocaleTimeString('ar-SA') });
         localStorage.setItem('shahi_holds', JSON.stringify(holdInvoices));
         cart = []; render();
-        alert("تم تعليق الفاتورة بنجاح");
+        alert("تم تعليق الفاتورة");
     }
 
     function showHoldList() {
-        const list = document.getElementById('holdList');
-        list.innerHTML = holdInvoices.map((h, i) => `
+        document.getElementById('holdList').innerHTML = holdInvoices.map((h, i) => `
             <div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between">
-                <span>طلب الساعة ${h.time} (${h.items.length} صنف)</span>
+                <span>طلب ${h.time}</span>
                 <button onclick="restoreHold(${i})" style="background:green; color:white; border:none; border-radius:4px;">استعادة</button>
-            </div>`).join('') || "لا توجد فواتير معلقة";
+            </div>`).join('') || "لا يوجد معلق";
         document.getElementById('holdModal').style.display = 'block';
         document.getElementById('overlay').style.display = 'block';
     }
@@ -213,48 +252,29 @@
     function finishSale() {
         if(cart.length === 0) return;
         const now = new Date();
-        const total = parseFloat(document.getElementById('grandTotal').innerText);
-        
-        salesData.push({
-            id: salesData.length + 1,
-            day: ['الأحد','الأثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][now.getDay()],
-            date: now.toLocaleDateString('ar-SA'),
-            time: now.toLocaleTimeString('ar-SA'),
-            amount: total,
-            method: payMethod
-        });
-        
+        salesData.push({ id: salesData.length + 1, date: now.toLocaleDateString('ar-SA'), time: now.toLocaleTimeString('ar-SA'), amount: parseFloat(document.getElementById('grandTotal').innerText), method: payMethod });
         localStorage.setItem('shahi_sales', JSON.stringify(salesData));
-        window.print();
-        cart = []; render();
+        window.print(); cart = []; render();
     }
 
     function showReport() {
         let total = salesData.reduce((s, r) => s + r.amount, 0);
-        document.getElementById('reportContent').innerHTML = `
-            <p>إجمالي المبيعات: <b>${total.toFixed(2)} ﷼</b></p>
-            <p>عدد الفواتير المنفذة: <b>${salesData.length}</b></p>
-        `;
+        document.getElementById('reportContent').innerHTML = `<p>الإجمالي: ${total.toFixed(2)} ﷼</p><p>الفواتير: ${salesData.length}</p>`;
         document.getElementById('reportModal').style.display = 'block';
         document.getElementById('overlay').style.display = 'block';
     }
 
     function exportToExcel() {
-        let csv = "\ufeffالرقم,اليوم,التاريخ,الوقت,المبلغ,طريقة الدفع\n";
-        salesData.forEach(r => csv += `${r.id},${r.day},${r.date},${r.time},${r.amount},${r.method}\n`);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        let csv = "\ufeffالرقم,التاريخ,الوقت,المبلغ,طريقة الدفع\n";
+        salesData.forEach(r => csv += `${r.id},${r.date},${r.time},${r.amount},${r.method}\n`);
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `تقرير_شاهي_وليف_${new Date().toLocaleDateString()}.csv`;
+        link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+        link.download = `تقرير_شاهي_وليف.csv`;
         link.click();
     }
 
-    function closeModals() {
-        document.querySelectorAll('.custom-modal, .modal-overlay').forEach(m => m.style.display = 'none');
-    }
-
+    function closeModals() { document.querySelectorAll('.custom-modal, .modal-overlay').forEach(m => m.style.display = 'none'); }
     window.onload = () => { filterCat('tea', document.querySelector('.cat-btn')); updateMeta(); };
 </script>
-
 </body>
 </html>
