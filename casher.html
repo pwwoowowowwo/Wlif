@@ -2,11 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كاشير شاهي وليف - الإصدار المطور</title>
+    <title>كاشير شاهي وليف - نظام البيع المستقل</title>
+    
+    <!-- مكتبات Firebase الأساسية -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
         :root { 
@@ -17,294 +18,238 @@
             --sidebar-w: 360px;
         }
         
-        * { box-sizing: border-box; font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: #333; }
-        
+        /* الترويسة بستايل شاهي وليف */
         header { 
-            height: 70px; 
-            background: linear-gradient(135deg, var(--maroon), #3d0000); 
-            color: white; 
-            display: flex; 
-            align-items: center; 
-            padding: 0 20px; 
-            justify-content: space-between; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 100;
-        }
-        
-        .header-right { display: flex; align-items: center; gap: 15px; }
-        .back-link {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            border: 1px solid rgba(255,255,255,0.2);
+            height: 70px; background: linear-gradient(135deg, var(--maroon), #3d0000); 
+            color: white; display: flex; align-items: center; padding: 0 20px; 
+            justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .app-main { display: flex; flex: 1; overflow: hidden; }
         
         /* قائمة المنتجات */
         .products-section { flex: 1; display: flex; flex-direction: column; background: #f8f9fa; }
+        .tabs-container { display: flex; padding: 15px; gap: 10px; overflow-x: auto; background: white; border-bottom: 1px solid #eee; }
         
-        .tabs-container { 
-            display: flex; 
-            padding: 15px; 
-            gap: 10px; 
-            overflow-x: auto; 
-            background: white;
-            border-bottom: 1px solid #eee;
-        }
         .tab { 
-            padding: 10px 25px; 
-            border-radius: 12px; 
-            border: 1px solid #ddd; 
-            background: #eee; 
-            font-weight: bold; 
-            cursor: pointer;
-            transition: 0.3s;
+            padding: 10px 25px; border-radius: 12px; border: 1px solid #ddd; 
+            background: #eee; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap;
         }
-        .tab.active { background: var(--maroon); color: white; border-color: var(--maroon); box-shadow: 0 4px 8px rgba(90,0,0,0.2); }
+        .tab.active { background: var(--maroon); color: white; border-color: var(--maroon); }
         
-        .products-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-            gap: 15px; 
-            padding: 20px; 
-            overflow-y: auto; 
-        }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; }
         
         .p-card { 
-            background: white; 
-            border-radius: 20px; 
-            padding: 20px 10px; 
-            text-align: center; 
-            cursor: pointer; 
-            border: 1px solid #f0f0f0;
-            transition: 0.2s;
+            background: white; border-radius: 20px; padding: 20px 10px; text-align: center; 
+            cursor: pointer; border: 1px solid #f0f0f0; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .p-card:active { transform: scale(0.95); background: #fffcf0; }
-        .p-card b { display: block; margin-bottom: 10px; font-size: 15px; color: #444; }
-        .p-card span { color: var(--maroon); font-weight: 800; font-size: 18px; }
+        .p-card b { display: block; margin-bottom: 10px; font-size: 14px; }
+        .p-card span { color: var(--maroon); font-weight: 800; font-size: 1.1rem; }
 
-        /* سلة المبيعات */
-        .sidebar { 
-            width: var(--sidebar-w); 
-            background: white; 
-            border-right: 1px solid #eee; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 20px;
-        }
+        /* السلة الجانبية */
+        .sidebar { width: var(--sidebar-w); background: white; border-right: 1px solid #eee; display: flex; flex-direction: column; padding: 20px; }
+        .cart-list { flex: 1; overflow-y: auto; }
+        .cart-row { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+        .cart-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; }
         
-        .cart-list { flex: 1; overflow-y: auto; margin-bottom: 15px; }
-        .cart-row { 
-            display: flex; 
-            flex-direction: column;
-            padding: 10px 0; 
-            border-bottom: 1px solid #f9f9f9; 
-        }
-        .cart-info { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
-        
-        .qty-controls { display: flex; align-items: center; gap: 15px; }
-        .qty-btn { 
-            width: 30px; height: 30px; 
-            border-radius: 8px; border: 1px solid #ddd; 
-            background: white; cursor: pointer; font-weight: bold;
-        }
+        .qty-controls { display: flex; align-items: center; gap: 12px; }
+        .qty-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .qty-btn:hover { background: #f0f0f0; }
 
-        .checkout-card { 
-            background: #fffcf0; 
-            border: 1px solid #e0d5b5; 
-            padding: 20px; 
-            border-radius: 20px; 
-        }
-        .total-row { display: flex; justify-content: space-between; font-size: 26px; font-weight: 900; color: var(--maroon); margin-bottom: 15px; }
+        .checkout-card { background: #fffcf0; border: 1px solid #e0d5b5; padding: 15px; border-radius: 15px; margin-top: 15px; }
+        .total-row { display: flex; justify-content: space-between; font-size: 26px; font-weight: 900; color: var(--maroon); margin-bottom: 12px; }
         
-        .pay-methods { display: flex; gap: 8px; margin-bottom: 15px; }
-        .method-btn { flex: 1; padding: 10px 5px; border-radius: 10px; border: 1px solid #ddd; background: white; cursor: pointer; font-weight: bold; }
-        .method-btn.active { background: var(--maroon); color: white; border-color: var(--maroon); }
-
         .btn-confirm { 
-            width: 100%; 
-            background: var(--success); 
-            color: white; 
-            border: none; padding: 18px; 
-            border-radius: 15px; font-size: 20px; font-weight: bold; 
-            cursor: pointer; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+            width: 100%; background: var(--success); color: white; border: none; 
+            padding: 18px; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
         }
 
-        /* الطباعة */
+        /* تنسيق الطباعة الحرارية */
         @media print {
             body * { visibility: hidden; }
             #receipt-print, #receipt-print * { visibility: visible; }
-            #receipt-print { position: absolute; left: 0; top: 0; width: 100%; text-align: center; }
+            #receipt-print { position: absolute; left: 0; top: 0; width: 100%; text-align: center; font-family: monospace; }
         }
 
         @media (max-width: 900px) {
             .app-main { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; border-right: none; border-top: 2px solid #eee; }
+            .sidebar { width: 100%; height: auto; border-top: 2px solid #eee; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-right">
-            <a href="index.html" class="back-link">🏠 الرئيسية</a>
-            <h2>كاشير شاهي وليف</h2>
-        </div>
-        <div class="nav-links">
-            <a href="inventory.html" class="back-link" style="background: var(--gold); color: var(--maroon);">المخزن</a>
-        </div>
-    </header>
+<header>
+    <div>
+        <h2 style="font-size: 20px; letter-spacing: 1px;">شاهي وليف</h2>
+    </div>
+    <div id="status" style="font-size: 13px; color: var(--gold);">نظام البيع الذكي</div>
+</header>
 
-    <div class="app-main">
-        <div class="products-section">
-            <div class="tabs-container" id="tabs">
-                <!-- التبويبات تظهر تلقائياً من البيانات -->
-            </div>
-            <div class="products-grid" id="grid"></div>
+<div class="app-main">
+    <div class="products-section">
+        <div class="tabs-container" id="tabs">
+            <!-- الفئات تظهر هنا -->
         </div>
-
-        <div class="sidebar">
-            <input type="tel" class="customer-input" id="phone" placeholder="رقم جوال العميل (اختياري)" 
-                   style="width: 100%; padding: 12px; border: 2px solid #f0f0f0; border-radius: 12px; margin-bottom: 15px; text-align: center;">
-            
-            <div class="cart-list" id="cartBody"></div>
-            
-            <div class="checkout-card">
-                <div class="total-row">
-                    <span>الإجمالي</span>
-                    <span id="totalTxt">0.00</span>
-                </div>
-                <div class="pay-methods">
-                    <button class="method-btn active" onclick="setPay('نقدي', this)">💵 كاش</button>
-                    <button class="method-btn" onclick="setPay('شبكة', this)">💳 شبكة</button>
-                </div>
-                <button class="btn-confirm" onclick="checkout()">إتمام وطباعة ✅</button>
-            </div>
+        <div class="products-grid" id="grid">
+            <!-- المنتجات تظهر هنا -->
         </div>
     </div>
 
-    <!-- قالب فاتورة الطباعة المخفي -->
-    <div id="receipt-print" style="display:none; font-family: 'Courier New', monospace; padding: 20px;">
-        <h2 style="margin:0;">شاهي وليف</h2>
-        <p>فاتورة مبيعات مبسطة</p>
-        <hr>
-        <div id="print-items" style="text-align: right; margin: 10px 0;"></div>
-        <hr>
-        <h3 id="print-total"></h3>
-        <p>شكراً لزيارتكم!</p>
+    <div class="sidebar">
+        <input type="tel" id="phone" placeholder="رقم جوال العميل..." 
+               style="width:100%; padding:12px; border-radius:12px; border:2px solid #f0f0f0; margin-bottom:15px; text-align:center; font-size: 16px;">
+        
+        <div class="cart-list" id="cartBody">
+            <p style="text-align:center; color:#aaa; margin-top:50px;">السلة فارغة</p>
+        </div>
+        
+        <div class="checkout-card">
+            <div class="total-row">
+                <span>الإجمالي</span>
+                <span id="totalTxt">0.00</span>
+            </div>
+            <button class="btn-confirm" onclick="checkout()">إتمام وطباعة ✅</button>
+        </div>
     </div>
+</div>
 
-    <script>
-        const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+<!-- الفاتورة (تظهر عند الطباعة فقط) -->
+<div id="receipt-print" style="display:none;">
+    <h2 style="margin-bottom:5px;">شاهي وليف</h2>
+    <p>فاتورة مبيعات</p>
+    <p id="print-date" style="font-size:12px;"></p>
+    <hr style="border-top:1px dashed #000">
+    <div id="print-items" style="padding: 10px 0;"></div>
+    <hr style="border-top:1px dashed #000">
+    <h3 id="print-total"></h3>
+    <p>شكراً لزيارتكم</p>
+</div>
 
-        let allProducts = [], cart = [], currentCat = '', payMethod = 'نقدي';
+<script>
+    // تكوين قاعدة البيانات (Firebase)
+    const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        // 1. جلب البيانات
-        db.ref('products').on('value', snap => {
-            const data = snap.val();
-            allProducts = data ? Object.keys(data).map(k => ({id: k, ...data[k]})) : [];
-            
-            const cats = [...new Set(allProducts.map(p => p.cat))];
-            if (!currentCat) currentCat = cats[0];
-            
-            renderTabs(cats);
-            renderGrid();
-        });
+    let allProducts = [], cart = [], currentCat = '';
 
-        function renderTabs(cats) {
-            document.getElementById('tabs').innerHTML = cats.map(c => `
-                <button class="tab ${c === currentCat ? 'active' : ''}" onclick="filterCat('${c}')">${c}</button>
-            `).join('');
+    // 1. جلب المنتجات وتوليد الفئات تلقائياً
+    db.ref('products').on('value', snap => {
+        const data = snap.val();
+        allProducts = data ? Object.keys(data).map(k => ({id: k, ...data[k]})) : [];
+        const cats = [...new Set(allProducts.map(p => p.cat))];
+        if (!currentCat && cats.length > 0) currentCat = cats[0];
+        renderTabs(cats);
+        renderGrid();
+    });
+
+    function renderTabs(cats) {
+        document.getElementById('tabs').innerHTML = cats.map(c => `
+            <button class="tab ${c === currentCat ? 'active' : ''}" onclick="filterCat('${c}')">${c}</button>
+        `).join('');
+    }
+
+    function filterCat(c) {
+        currentCat = c;
+        renderTabs([...new Set(allProducts.map(p => p.cat))]);
+        renderGrid();
+    }
+
+    function renderGrid() {
+        const filtered = allProducts.filter(p => p.cat === currentCat);
+        document.getElementById('grid').innerHTML = filtered.map(p => `
+            <div class="p-card" onclick="addToCart('${p.id}', '${p.name}', ${p.price})">
+                <b>${p.name}</b>
+                <span>${parseFloat(p.price).toFixed(2)} ﷼</span>
+            </div>
+        `).join('');
+    }
+
+    // 2. إدارة السلة
+    function addToCart(id, name, price) {
+        const existing = cart.find(i => i.id === id);
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({id, name, price, qty: 1});
+        }
+        updateUI();
+    }
+
+    function changeQty(index, delta) {
+        cart[index].qty += delta;
+        if (cart[index].qty <= 0) cart.splice(index, 1);
+        updateUI();
+    }
+
+    function updateUI() {
+        const body = document.getElementById('cartBody');
+        let total = 0;
+        
+        if (cart.length === 0) {
+            body.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:50px;">السلة فارغة</p>';
+            document.getElementById('totalTxt').innerText = "0.00";
+            return;
         }
 
-        function filterCat(c) {
-            currentCat = c;
-            renderTabs([...new Set(allProducts.map(p => p.cat))]);
-            renderGrid();
-        }
-
-        function renderGrid() {
-            document.getElementById('grid').innerHTML = allProducts.filter(p => p.cat === currentCat).map(p => `
-                <div class="p-card" onclick="addToCart('${p.id}', '${p.name}', ${p.price})">
-                    <b>${p.name}</b>
-                    <span>${parseFloat(p.price).toFixed(2)} ﷼</span>
-                </div>
-            `).join('');
-        }
-
-        // 2. إدارة السلة
-        function addToCart(id, name, price) {
-            const item = cart.find(i => i.id === id);
-            if (item) item.qty++; else cart.push({id, name, price, qty: 1});
-            updateUI();
-        }
-
-        function changeQty(index, delta) {
-            cart[index].qty += delta;
-            if (cart[index].qty <= 0) cart.splice(index, 1);
-            updateUI();
-        }
-
-        function updateUI() {
-            let total = 0;
-            document.getElementById('cartBody').innerHTML = cart.map((item, i) => {
-                total += item.price * item.qty;
-                return `
-                    <div class="cart-row">
-                        <div class="cart-info">
-                            <span>${item.name}</span>
-                            <span>${(item.price * item.qty).toFixed(2)} ﷼</span>
-                        </div>
-                        <div class="qty-controls">
-                            <button class="qty-btn" onclick="changeQty(${i}, -1)">-</button>
-                            <span>${item.qty}</span>
-                            <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
-                        </div>
+        body.innerHTML = cart.map((item, i) => {
+            total += item.price * item.qty;
+            return `
+                <div class="cart-row">
+                    <div class="cart-header">
+                        <span>${item.name}</span>
+                        <span>${(item.price * item.qty).toFixed(2)}</span>
                     </div>
-                `;
-            }).join('');
-            document.getElementById('totalTxt').innerText = total.toFixed(2) + " ﷼";
-        }
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty(${i}, -1)">-</button>
+                        <span style="font-weight:bold;">${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.getElementById('totalTxt').innerText = total.toFixed(2) + " ﷼";
+    }
 
-        function setPay(m, btn) {
-            payMethod = m;
-            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
+    // 3. إتمام المبيعة والطباعة
+    async function checkout() {
+        const total = parseFloat(document.getElementById('totalTxt').innerText);
+        if (total <= 0) return alert("الرجاء إضافة منتجات للسلة");
 
-        // 3. الحفظ والطباعة
-        async function checkout() {
-            const total = parseFloat(document.getElementById('totalTxt').innerText);
-            if (total <= 0) return alert("السلة فارغة");
+        const saleData = {
+            total,
+            items: cart,
+            phone: document.getElementById('phone').value || "عميل عام",
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
 
-            const sale = {
-                total, method: payMethod,
-                phone: document.getElementById('phone').value || "عميل",
-                items: cart,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            await db.ref('sales').push(sale);
+        try {
+            await db.ref('sales').push(saleData);
             
-            // تجهيز وطباعة
-            document.getElementById('print-items').innerHTML = cart.map(i => `<div>${i.name} x${i.qty} = ${(i.price*i.qty).toFixed(2)}</div>`).join('');
+            // تجهيز الفاتورة للطباعة
+            document.getElementById('print-date').innerText = new Date().toLocaleString('ar-SA');
+            document.getElementById('print-items').innerHTML = cart.map(i => 
+                `<div style="display:flex; justify-content:space-between;"><span>${i.name} x${i.qty}</span><span>${(i.price*i.qty).toFixed(2)}</span></div>`
+            ).join('');
             document.getElementById('print-total').innerText = "الإجمالي: " + total.toFixed(2) + " ريال";
+            
             window.print();
 
-            // إعادة تعيين
+            // تصفير السلة
             cart = [];
             document.getElementById('phone').value = "";
             updateUI();
+            alert("تم تسجيل المبيعة بنجاح ✅");
+        } catch (e) {
+            alert("حدث خطأ في الاتصال بقاعدة البيانات");
         }
-    </script>
+    }
+</script>
 </body>
 </html>
