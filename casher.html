@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <!-- منع المتصفح من تخزين الصفحة لضمان ظهور التحديثات فوراً -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كاشير شاهي وليف - نظام البيع الذكي</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        /* إضافة متغيرات ألوان جديدة لضمان تغيير الهوية البصرية */
+        :root { 
+            --maroon: #5a0000; 
+            --gold: #d4af37; 
+            --bg: #fdfdfd; 
+            --success: #27ae60;
+            --sidebar-w: 360px;
+        }
+        
+        * { box-sizing: border-box; font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
+        
+        body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: #333; }
+        
+        header { 
+            height: 70px; 
+            background: linear-gradient(135deg, var(--maroon), #3d0000); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 20px; 
+            justify-content: space-between; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+        
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        
+        .back-link {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .back-link:hover { background: var(--gold); color: var(--maroon); transform: translateX(5px); }
+
+        .nav-links { display: flex; gap: 10px; }
+        .nav-btn { 
+            background: rgba(0,0,0,0.2); 
+            color: #eee; 
+            padding: 8px 15px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .app-main { display: flex; flex: 1; overflow: hidden; }
+        
+        /* قائمة المنتجات */
+        .products-section { flex: 1; display: flex; flex-direction: column; background: #f8f9fa; }
+        
+        .tabs-container { 
+            display: flex; 
+            padding: 15px; 
+            gap: 10px; 
+            overflow-x: auto; 
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+        .tab { 
+            padding: 10px 25px; 
+            border-radius: 12px; 
+            border: none; 
+            background: #eee; 
+            font-weight: bold; 
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+        .tab.active { background: var(--maroon); color: white; box-shadow: 0 4px 8px rgba(90,0,0,0.2); }
+        
+        .products-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+            gap: 15px; 
+            padding: 20px; 
+            overflow-y: auto; 
+        }
+        
+        .p-card { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 20px 10px; 
+            text-align: center; 
+            cursor: pointer; 
+            border: 1px solid #f0f0f0;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .p-card:active { transform: scale(0.95); background: #fffcf0; }
+        .p-card b { display: block; margin-bottom: 10px; font-size: 15px; color: #444; }
+        .p-card span { color: var(--maroon); font-weight: 800; font-size: 18px; }
+
+        /* سلة المبيعات */
+        .sidebar { 
+            width: var(--sidebar-w); 
+            background: white; 
+            border-right: 1px solid #eee; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 20px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.02);
+        }
+        
+        .customer-input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #f0f0f0; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+            font-size: 14px;
+            outline: none;
+            text-align: center;
+        }
+        .customer-input:focus { border-color: var(--gold); }
+
+        .cart-list { flex: 1; overflow-y: auto; margin-bottom: 15px; }
+        .cart-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px 5px; 
+            border-bottom: 1px solid #f9f9f9; 
+            font-size: 14px;
+        }
+        .remove-icon { color: #e74c3c; cursor: pointer; padding: 0 5px; font-weight: bold; }
+
+        .checkout-card { 
+            background: #fffcf0; 
+            border: 1px solid #e0d5b5; 
+            padding: 20px; 
+            border-radius: 20px; 
+        }
+        .total-row { display: flex; justify-content: space-between; font-size: 26px; font-weight: 900; color: var(--maroon); margin-bottom: 15px; }
+        
+        .pay-methods { display: flex; gap: 8px; margin-bottom: 15px; }
+        .method-btn { flex: 1; padding: 10px 5px; border-radius: 10px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .method-btn.active { background: var(--maroon); color: white; border-color: var(--maroon); }
+
+        .btn-confirm { 
+            width: 100%; 
+            background: var(--success); 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 15px; 
+            font-size: 20px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        /* لضمان التحديث على الجوال */
+        @media (max-width: 900px) {
+            .app-main { flex-direction: column; }
+            .sidebar { width: 100%; height: 400px; border-right: none; border-top: 2px solid #eee; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-right">
+            <a href="index.html?v=1.1" class="back-link">
+                <span>🏠</span> الرئيسية
+            </a>
+            <h2 style="letter-spacing: 1px;">كاشير شاهي وليف</h2>
+        </div>
+        <div class="nav-links">
+            <a href="inventory.html" class="nav-btn">المخزن</a>
+            <a href="sales.html" class="nav-btn">السجل</a>
+        </div>
+    </header>
+
+    <div class="app-main">
+        <div class="products-section">
+            <div class="tabs-container" id="tabs">
+                <button class="tab active" onclick="filterCat('tea', this)">شاي</button>
+                <button class="tab" onclick="filterCat('karak', this)">كرك</button>
+                <button class="tab" onclick="filterCat('bakery', this)">مخبوزات</button>
+                <button class="tab" onclick="filterCat('extras', this)">إضافات</button>
+            </div>
+            <div class="products-grid" id="grid"></div>
+        </div>
+
+        <div class="sidebar">
+            <input type="tel" class="customer-input" id="phone" placeholder="رقم جوال العميل (اختياري)">
+            <div class="cart-list" id="cartBody"></div>
+            
+            <div class="checkout-card">
+                <div class="total-row">
+                    <span>الإجمالي</span>
+                    <span><span id="totalTxt">0.00</span> ﷼</span>
+                </div>
+                <div class="pay-methods">
+                    <button class="method-btn active" onclick="setPay('نقدي', this)">💵 كاش</button>
+                    <button class="method-btn" onclick="setPay('شبكة', this)">💳 شبكة</button>
+                    <button class="method-btn" onclick="setPay('مختلط', this)">🔄 مختلط</button>
+                </div>
+                <button class="btn-confirm" onclick="checkout()">إتمام المبيعة ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // دالة لفرض تحديث الصفحة إذا كان هناك إصدار جديد
+        const VERSION = "1.1";
+        if (localStorage.getItem('app_version') !== VERSION) {
+            localStorage.setItem('app_version', VERSION);
+            window.location.reload(true);
+        }
+
+        const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let items = [], cart = [], currentCat = 'tea', method = 'نقدي';
+
+        // جلب البيانات مع مانع تخزين بسيط في الطلب
+        db.ref('products').on('value', snap => {
+            const data = snap.val();
+            items = data ? Object.keys(data).map(k => ({id: k, ...data[k]})) : [];
+            render();
+        });
+
+        function filterCat(c, btn) {
+            currentCat = c;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = items.filter(i => i.cat === currentCat).map(i => `
+                <div class="p-card" onclick="add('${i.id}', '${i.name}', ${i.price})">
+                    <b>${i.name}</b>
+                    <span>${parseFloat(i.price).toFixed(2)} ﷼</span>
+                </div>
+            `).join('');
+        }
+
+        function add(id, name, price) {
+            const ex = cart.find(c => c.id === id);
+            if(ex) ex.q++; else cart.push({id, name, price, q: 1});
+            updateUI();
+        }
+
+        function updateUI() {
+            const b = document.getElementById('cartBody');
+            let t = 0;
+            b.innerHTML = cart.map((c, i) => {
+                t += c.price * c.q;
+                return `<div class="cart-row"><span>${c.name} (x${c.q})</span><b>${(c.price*c.q).toFixed(2)} <span class="remove-icon" onclick="rem(${i})">×</span></b></div>`;
+            }).join('');
+            document.getElementById('totalTxt').innerText = t.toFixed(2);
+        }
+
+        function rem(i) { cart.splice(i, 1); updateUI(); }
+        function setPay(m, b) { method = m; document.querySelectorAll('.method-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }
+
+        async function checkout() {
+            const total = parseFloat(document.getElementById('totalTxt').innerText);
+            if(total <= 0) return;
+            
+            const sale = {
+                total, 
+                method, 
+                phone: document.getElementById('phone').value || "عميل",
+                items: cart,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            await db.ref('sales').push(sale);
+            alert("تم تسجيل العملية بنجاح ✅");
+            cart = [];
+            document.getElementById('phone').value = "";
+            updateUI();
+        }
+    </script>
+</body>
