@@ -4,310 +4,209 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>منيو شاهي وليف</title>
-    <!-- استدعاء Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
     <style>
-        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; --white: #ffffff; }
-        body { background: var(--bg); margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; color: #333; }
+        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; }
+        body { background: var(--bg); margin: 0; font-family: 'Segoe UI', sans-serif; color: #333; }
 
-        /* 1. شاشة التحميل الترحيبية (Splash Screen) */
+        /* شاشة التحميل الترحيبية */
         #welcome-screen {
             position: fixed; inset: 0; background: var(--p);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; transition: opacity 0.6s ease;
+            z-index: 9999; transition: opacity 0.5s ease;
         }
-        .welcome-logo {
-            width: 100px; height: 100px; border: 3px solid var(--gold); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--gold); font-size: 1.5em; font-weight: 900; animation: pulse 2s infinite;
-        }
+        .welcome-logo { width: 100px; height: 100px; border: 3px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1.5em; font-weight: 900; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        /* 2. تحسين واجهة اختيار الطاولات */
-        .table-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; max-height: 250px; overflow-y: auto; padding: 10px; }
-        .table-btn { background: #f0f0f0; border: 1.5px solid #ddd; padding: 15px 5px; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; }
-        .table-btn.active { background: var(--p); color: white; border-color: var(--gold); }
-
-        /* 3. تصميم المنيو والأصناف */
+        /* تنسيق الأقسام - تأكدت أنها تظهر بشكل واضح */
         header { background: white; padding: 15px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
-        .cat-item { background: white; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; cursor: pointer; font-weight: bold; font-size: 1.1em; }
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; min-height: 200px; }
+        .cat-item { background: white; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; cursor: pointer; font-weight: bold; }
         
-        .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 20px; border: 1px solid #f0f0f0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 20px; border: 1px solid #f0f0f0; }
         .prod-header { display: flex; justify-content: space-between; align-items: center; }
         .controls { display: flex; align-items: center; gap: 12px; }
         .btn-qty { width: 34px; height: 34px; border-radius: 10px; border: none; font-size: 1.2em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-minus { background: #eee; color: #666; }
         .btn-plus { background: var(--p); color: white; }
+        .note-input { width: 100%; border: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 0.85em; margin-top: 10px; border-right: 3px solid var(--gold); box-sizing: border-box; }
+
+        .cart-bar { position: fixed; bottom: 20px; left: 15px; right: 15px; background: #231815; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; z-index: 1000; }
+        .checkout-btn { background: var(--gold); color: #231815; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; }
         
-        .note-input { width: 100%; border: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 0.85em; margin-top: 10px; border-right: 3px solid var(--gold); outline: none; box-sizing: border-box; }
-
-        /* 4. شريط السلة السفلي */
-        .cart-bar { position: fixed; bottom: 20px; left: 15px; right: 15px; background: #231815; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .checkout-btn { background: var(--gold); color: #231815; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-
-        /* 5. نوافذ المراجعة والحالات */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background: white; width: 100%; max-width: 400px; border-radius: 25px; padding: 20px; text-align: center; max-height: 85vh; overflow-y: auto; }
-        .review-item { text-align: right; padding: 10px 0; border-bottom: 1px dashed #eee; }
-        .btn-opt { display: block; width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid var(--p); border-radius: 15px; font-weight: bold; cursor: pointer; background: white; color: var(--p); font-size: 1em; }
+        /* تحسين شبكة الطاولات */
+        .table-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; padding: 10px; }
+        .table-btn { background: #f0f0f0; border: 1.5px solid #ddd; padding: 15px 5px; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; }
+        .table-btn.active { background: var(--p); color: white; border-color: var(--gold); }
+        
+        .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 25px; padding: 20px; text-align: center; }
+        .btn-opt { display: block; width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid var(--p); border-radius: 15px; font-weight: bold; cursor: pointer; background: white; color: var(--p); }
     </style>
 </head>
 <body>
 
-<!-- شاشة الترحيب -->
 <div id="welcome-screen">
     <div class="welcome-logo">Wlif</div>
-    <div style="color:white; margin-top:15px; font-weight:bold; letter-spacing: 1px;">شاهي وليف</div>
+    <div style="color:white; margin-top:15px; font-weight:bold;">شاهي وليف</div>
 </div>
 
-<!-- شاشة اختيار الدخول (محلي/سفري) -->
 <div id="order-type-overlay" style="position:fixed; inset:0; background:var(--p); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;">
     <div class="modal-box" id="step-1">
-        <h2 style="color:var(--p)">مرحباً بك</h2>
-        <button class="btn-opt" onclick="showLocal()">🍽️ محلي (طاولة)</button>
+        <h2>مرحباً بك</h2>
+        <button class="btn-opt" onclick="showLocal()">🍽️ محلي</button>
         <button class="btn-opt" onclick="showTakeaway()">🥡 سفري</button>
     </div>
-    
     <div class="modal-box" id="local-in" style="display:none;">
         <h3>اختر رقم الطاولة</h3>
         <div class="table-grid" id="tables-container"></div>
-        <button class="btn-opt" id="start-local-btn" style="background:var(--p); color:white; margin-top:20px; opacity:0.5;" disabled onclick="startApp('محلي')">دخول للمنيو</button>
+        <button class="btn-opt" id="start-local-btn" style="background:var(--p); color:white; opacity:0.5;" disabled onclick="startApp('محلي')">دخول للمنيو</button>
     </div>
-
     <div class="modal-box" id="take-in" style="display:none;">
         <h3>رقم الجوال (اختياري)</h3>
-        <input type="tel" id="phone-in" placeholder="05xxxxxxxx" style="width:100%; padding:15px; margin-bottom:15px; text-align:center; border:1px solid #ddd; border-radius:12px; outline:none;">
+        <input type="tel" id="phone-in" placeholder="05xxxxxxxx" style="width:100%; padding:15px; margin-bottom:15px; text-align:center; border:1px solid #ddd; border-radius:12px;">
         <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('سفري')">دخول للمنيو</button>
     </div>
 </div>
 
-<!-- المنيو الرئيسي -->
 <div id="main-ui" style="display:none; padding-bottom:120px;">
     <header>
         <h1 style="color:var(--p); margin:0;">شاهي وليف</h1>
         <div id="info-tag" style="color:var(--gold); font-weight:bold; font-size:0.85em; margin-top:5px;"></div>
     </header>
-
-    <div id="categories-view">
-        <div class="cat-grid" id="cat-list"></div>
-    </div>
-    
+    <div id="categories-view"><div class="cat-grid" id="cat-list"></div></div>
     <div id="products-view" style="display:none;">
-        <div onclick="backToCategories()" style="padding:15px; color:var(--p); font-weight:bold; cursor:pointer; display: flex; align-items: center; gap: 5px;">
-            <span>⬅️</span> العودة للأقسام
-        </div>
+        <div onclick="backToCategories()" style="padding:15px; color:var(--p); font-weight:bold; cursor:pointer;">⬅️ العودة للأقسام</div>
         <div id="products-list"></div>
     </div>
-
     <div class="cart-bar">
-        <div id="total-display" style="font-size: 1.2em; font-weight: bold;">0.00 ﷼</div>
+        <div id="total-display">0.00 ﷼</div>
         <button class="checkout-btn" onclick="openReview()">مراجعة الطلب</button>
     </div>
 </div>
 
-<!-- نافذة مراجعة الطلب -->
-<div id="review-modal" class="modal-overlay">
-    <div class="modal-box">
-        <h3 style="color:var(--p)">مراجعة طلبك 📋</h3>
-        <div id="review-list"></div>
-        <div style="display:flex; justify-content: space-between; font-weight:bold; margin: 20px 0; font-size:1.3em; border-top: 2px solid #f0f0f0; padding-top: 15px;">
-            <span>الإجمالي:</span>
-            <span id="review-total">0.00 ﷼</span>
+<div id="review-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2500; display:none; align-items:center; justify-content:center; padding:20px;">
+    <div class="modal-box" style="max-height: 80vh; overflow-y: auto;">
+        <h3>تأكيد الطلب 📋</h3>
+        <div id="review-list" style="text-align:right;"></div>
+        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-top:15px; font-size:1.2em;">
+            <span>الإجمالي:</span><span id="review-total">0.00 ﷼</span>
         </div>
-        <button class="btn-opt" style="background:var(--p); color:white;" onclick="confirmAndSend()">تأكيد وإرسال للتجهيز ✅</button>
-        <button class="btn-opt" style="border-color:#ccc; color:#666;" onclick="closeReview()">تعديل الأصناف</button>
+        <button class="btn-opt" style="background:var(--p); color:white;" onclick="confirmAndSend()">تأكيد وإرسال ✅</button>
+        <button class="btn-opt" onclick="document.getElementById('review-modal').style.display='none'">تعديل الطلب</button>
     </div>
 </div>
 
-<!-- شاشة النجاح ورقم الطلب -->
-<div id="order-status-screen" style="position:fixed; inset:0; background:white; z-index:3000; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
-    <div style="text-align:center;">
-        <div style="font-size: 50px;">✅</div>
-        <h2 style="color:var(--p)">تم إرسال طلبك بنجاح</h2>
-        <p style="color:#666;">رقم الطلب الخاص بك:</p>
-        <div style="font-size:5em; font-weight:900; color:var(--p); margin:10px 0;" id="display-inv"></div>
-        <p id="status-msg" style="background:#fff3cd; padding:10px 20px; border-radius:50px; font-weight:bold; color:#856404;">جاري الاستلام...</p>
-        <button class="btn-opt" onclick="location.reload()" style="margin-top:30px;">طلب جديد +</button>
-    </div>
+<div id="success-screen" style="position:fixed; inset:0; background:white; z-index:3000; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+    <h2 style="color:var(--p)">تم الطلب بنجاح!</h2>
+    <div style="font-size:5em; font-weight:900; color:var(--p);" id="display-inv"></div>
+    <button class="btn-opt" onclick="location.reload()">طلب جديد</button>
 </div>
 
 <script>
-    // 1. تسريع التحميل باستخدام الكاش المحلي
-    let allProducts = JSON.parse(localStorage.getItem('wlif_menu_cache')) || {};
-    let oType = "", oDetail = "", cart = {}, selectedTable = null;
+    // الإعدادات وجلب الكاش فوراً
+    let allProducts = JSON.parse(localStorage.getItem('wlif_cache')) || {};
+    let cart = {}, oType = "", oDetail = "", selectedTable = null;
 
     const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 2. إخفاء شاشة الترحيب
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            const ws = document.getElementById('welcome-screen');
-            ws.style.opacity = '0';
-            setTimeout(() => ws.style.display = 'none', 600);
-        }, 2200);
-        renderCategories(); // عرض الأقسام فوراً من الكاش
-    });
-
-    // 3. بناء شبكة الطاولات
-    const tableGrid = document.getElementById('tables-container');
-    for(let i=1; i<=20; i++) {
-        const btn = document.createElement('div');
-        btn.className = 'table-btn';
-        btn.innerText = i;
-        btn.onclick = () => {
-            document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedTable = i;
-            document.getElementById('start-local-btn').disabled = false;
-            document.getElementById('start-local-btn').style.opacity = '1';
-        };
-        tableGrid.appendChild(btn);
+    // عرض الأقسام فوراً من الكاش قبل حتى ما يشتغل الـ Firebase
+    function renderCats() {
+        const cats = {tea:'☕ شاي', karak:'🍯 كرك', bakery:'🥐 مخبوزات', extra:'➕ الإضافات', games:'🥮 جانبية'};
+        const list = document.getElementById('cat-list');
+        if(list) list.innerHTML = Object.keys(cats).map(k => `<div class="cat-item" onclick="openCategory('${k}')">${cats[k]}</div>`).join('');
     }
+
+    // تشغيل الأنيميشن والعرض
+    window.onload = () => {
+        renderCats();
+        // إنشاء شبكة الطاولات
+        const grid = document.getElementById('tables-container');
+        for(let i=1; i<=20; i++) {
+            const b = document.createElement('div'); b.className='table-btn'; b.innerText=i;
+            b.onclick = () => {
+                document.querySelectorAll('.table-btn').forEach(x=>x.classList.remove('active'));
+                b.classList.add('active'); selectedTable=i;
+                document.getElementById('start-local-btn').disabled=false; document.getElementById('start-local-btn').style.opacity=1;
+            };
+            grid.appendChild(b);
+        }
+        setTimeout(() => { document.getElementById('welcome-screen').style.opacity=0; setTimeout(()=>document.getElementById('welcome-screen').style.display='none',500); }, 2000);
+    };
+
+    // جلب البيانات من السيرفر وتحديث الكاش
+    db.ref('products').on('value', snap => {
+        if(snap.exists()) {
+            allProducts = snap.val();
+            localStorage.setItem('wlif_cache', JSON.stringify(allProducts));
+            renderCats(); 
+        }
+    });
 
     function showLocal() { document.getElementById('step-1').style.display='none'; document.getElementById('local-in').style.display='block'; }
     function showTakeaway() { document.getElementById('step-1').style.display='none'; document.getElementById('take-in').style.display='block'; }
-    
-    function startApp(t) { 
-        oType = t; oDetail = (t==='محلي') ? "طاولة "+selectedTable : (document.getElementById('phone-in').value || "سفري");
+    function startApp(t) {
+        oType=t; oDetail=(t==='محلي'?"طاولة "+selectedTable:document.getElementById('phone-in').value||"سفري");
         document.getElementById('order-type-overlay').style.display='none'; document.getElementById('main-ui').style.display='block';
         document.getElementById('info-tag').innerText = oType + " | " + oDetail;
     }
 
-    // 4. جلب البيانات من Firebase مع التحديث المستمر
-    db.ref('products').on('value', snap => {
-        if(snap.exists()) {
-            allProducts = snap.val();
-            localStorage.setItem('wlif_menu_cache', JSON.stringify(allProducts));
-            renderCategories();
-        }
-    });
-
-    function renderCategories() {
-        const cats = {tea:'☕ شاي', karak:'🍯 كرك', bakery:'🥐 مخبوزات', extra:'➕ الإضافات', games:'🥮 طلبات جانبية'};
-        document.getElementById('cat-list').innerHTML = Object.keys(cats).map(k => `
-            <div class="cat-item" onclick="openCategory('${k}')">${cats[k]}</div>
-        `).join('');
-    }
-
-    let currentCat = "";
     function openCategory(k) {
-        currentCat = k;
-        document.getElementById('categories-view').style.display='none'; 
-        document.getElementById('products-view').style.display='block';
-        const filteredIds = Object.keys(allProducts).filter(id => allProducts[id].cat === k);
-        renderProducts(filteredIds);
-    }
-
-    function renderProducts(ids) {
+        document.getElementById('categories-view').style.display='none'; document.getElementById('products-view').style.display='block';
+        const ids = Object.keys(allProducts).filter(id => allProducts[id].cat === k);
         const list = document.getElementById('products-list');
-        if(!ids.length) { list.innerHTML = "<p style='text-align:center; padding:20px;'>قريباً...</p>"; return; }
-        
-        list.innerHTML = ids.map(id => {
+        list.innerHTML = ids.length ? ids.map(id => {
             const p = allProducts[id];
-            const qty = cart[id] ? cart[id].qty : 0;
-            const note = cart[id] ? cart[id].note : "";
-            return `
-            <div class="product-card">
+            return `<div class="product-card">
                 <div class="prod-header">
-                    <div><b>${p.name}</b><br><small style="color:var(--p)">${p.price} ﷼</small></div>
+                    <div><b>${p.name}</b><br><small>${p.price} ﷼</small></div>
                     <div class="controls">
-                        <button class="btn-qty btn-minus" onclick="updateQty('${id}', -1)">-</button>
-                        <span id="qty-${id}" style="font-weight:bold; min-width:20px; text-align:center;">${qty}</span>
-                        <button class="btn-qty btn-plus" onclick="updateQty('${id}', 1)">+</button>
+                        <button class="btn-qty btn-minus" onclick="updateQty('${id}',-1)">-</button>
+                        <span id="qty-${id}">${cart[id]?cart[id].qty:0}</span>
+                        <button class="btn-qty btn-plus" onclick="updateQty('${id}',1)">+</button>
                     </div>
                 </div>
-                <input type="text" class="note-input" id="note-${id}" placeholder="أي ملاحظة؟ (سكر، نعناع...)" 
-                       oninput="updateNote('${id}', this.value)" value="${note}">
+                <input type="text" class="note-input" id="note-${id}" placeholder="سكر، نعناع..." oninput="updateNote('${id}',this.value)" value="${cart[id]?cart[id].note:''}">
             </div>`;
-        }).join('');
+        }).join('') : "<p style='text-align:center; padding:20px;'>لا يوجد أصناف حالياً</p>";
     }
 
-    function updateQty(id, change) {
-        if (!cart[id] && change > 0) {
-            cart[id] = { name: allProducts[id].name, price: parseFloat(allProducts[id].price), qty: 0, note: "" };
-        }
-        if (cart[id]) {
-            cart[id].qty += change;
-            if (cart[id].qty <= 0) delete cart[id];
-            updateTotalBar();
-            const qEl = document.getElementById(`qty-${id}`);
-            if(qEl) qEl.innerText = cart[id] ? cart[id].qty : 0;
+    function updateQty(id, c) {
+        if(!cart[id] && c>0) cart[id]={name:allProducts[id].name, price:parseFloat(allProducts[id].price), qty:0, note:""};
+        if(cart[id]) {
+            cart[id].qty += c;
+            if(cart[id].qty <= 0) delete cart[id];
+            document.getElementById('qty-'+id).innerText = cart[id]?cart[id].qty:0;
+            let total = 0; Object.values(cart).forEach(i=>total+=(i.price*i.qty));
+            document.getElementById('total-display').innerText = total.toFixed(2) + " ﷼";
         }
     }
+    function updateNote(id, v) { if(cart[id]) cart[id].note=v; }
+    function backToCategories() { document.getElementById('categories-view').style.display='block'; document.getElementById('products-view').style.display='none'; }
 
-    function updateNote(id, val) { if(cart[id]) cart[id].note = val; }
-
-    function updateTotalBar() {
-        let total = 0;
-        Object.values(cart).forEach(i => total += (i.price * i.qty));
-        document.getElementById('total-display').innerText = total.toFixed(2) + " ﷼";
-    }
-
-    function backToCategories() { 
-        document.getElementById('categories-view').style.display='block'; 
-        document.getElementById('products-view').style.display='none'; 
-    }
-
-    // 5. نظام مراجعة وإرسال الطلب
     function openReview() {
-        const items = Object.values(cart);
-        if(!items.length) return alert("سلتك فارغة، اختر بعض الأصناف أولاً");
-        
+        const items = Object.values(cart); if(!items.length) return alert("السلة فارغة");
         let total = 0;
         document.getElementById('review-list').innerHTML = items.map(i => {
-            total += (i.price * i.qty);
-            return `
-            <div class="review-item">
-                <div style="display:flex; justify-content:space-between">
-                    <b>${i.name} (x${i.qty})</b>
-                    <span>${(i.price * i.qty).toFixed(2)} ﷼</span>
-                </div>
-                ${i.note ? `<div style="font-size:0.8em; color:var(--gold)">ملاحظة: ${i.note}</div>` : ''}
-            </div>`;
+            total += (i.price*i.qty);
+            return `<div><b>${i.name} x ${i.qty}</b> - ${(i.price*i.qty).toFixed(2)} ﷼ ${i.note?'<br><small>('+i.note+')</small>':''}</div><hr>`;
         }).join('');
-        
         document.getElementById('review-total').innerText = total.toFixed(2) + " ﷼";
-        document.getElementById('review-modal').style.display = 'flex';
+        document.getElementById('review-modal').style.display='flex';
     }
-
-    function closeReview() { document.getElementById('review-modal').style.display = 'none'; }
 
     function confirmAndSend() {
         const inv = Math.floor(Math.random()*9000)+1000;
-        let finalTotal = 0;
-        Object.values(cart).forEach(i => finalTotal += (i.price * i.qty));
-
-        const orderData = {
-            inv, 
-            type: oType, 
-            detail: oDetail, 
-            items: Object.values(cart), 
-            total: finalTotal.toFixed(2), 
-            status: 'pending', 
-            timestamp: Date.now()
-        };
-        
-        db.ref('orders/' + inv).set(orderData).then(() => {
-            document.getElementById('review-modal').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('order-status-screen').style.display = 'flex';
+        let total = 0; Object.values(cart).forEach(i=>total+=(i.price*i.qty));
+        db.ref('orders/'+inv).set({inv, type:oType, detail:oDetail, items:Object.values(cart), total:total.toFixed(2), status:'pending', timestamp:Date.now()})
+        .then(() => {
+            document.getElementById('review-modal').style.display='none';
+            document.getElementById('main-ui').style.display='none';
+            document.getElementById('success-screen').style.display='flex';
             document.getElementById('display-inv').innerText = inv;
-            
-            // مراقبة حالة الطلب من الكاشير
-            db.ref('orders/' + inv + '/status').on('value', snap => {
-                const s = snap.val();
-                const msg = document.getElementById('status-msg');
-                if(s === 'ready') {
-                    msg.innerText = "✅ طلبك جاهز! تفضل باستلامه";
-                    msg.style.background = "#d4edda";
-                    msg.style.color = "#155724";
-                }
-            });
         });
     }
 </script>
