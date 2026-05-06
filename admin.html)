@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة طلبات شاهي وليف</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --p: #630000; --gold: #c5a059; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; margin: 0; }
+        .header { background: var(--p); color: white; padding: 15px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
+        .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .order-card { background: white; border-radius: 15px; padding: 15px; border-top: 5px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .qty { background: var(--p); color: white; padding: 2px 7px; border-radius: 5px; margin-left: 5px; font-weight: bold; }
+        .btn-done { background: #27ae60; color: white; border: none; width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #print-area { display: none; }
+        @media print { body * { display: none !important; } #print-area { display: block !important; width: 80mm; font-family: Arial; } .flex { display: flex; justify-content: space-between; } }
+    </style>
+</head>
+<body>
+<div class="header"><h1>استقبال الطلبات 🖨️</h1></div>
+<div class="orders-grid" id="list"></div>
+<div id="print-area"></div>
+<audio id="notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const startTime = Date.now();
+
+    db.ref('orders').orderByChild('timestamp').startAt(startTime).on('child_added', (snap) => {
+        const order = snap.val();
+        render(order, snap.key);
+        document.getElementById('notif').play();
+        printTicket(order);
+    });
+
+    function group(items) {
+        const counts = {};
+        items.forEach(i => { counts[i.name] = (counts[i.name] || 0) + 1; });
+        return Object.keys(counts).map(name => ({ name, qty: counts[name] }));
+    }
+
+    function render(order, key) {
+        const g = group(order.items);
+        const card = `<div class="order-card" id="card-${key}">
+            <div style="display:flex; justify-content:space-between"><b>#${order.inv}</b> <span>${order.type}</span></div>
+            <div style="color:var(--gold); margin: 5px 0;">${order.detail}</div>
+            ${g.map(i => `<div style="padding:4px 0;"><span class="qty">${i.qty}</span> ${i.name}</div>`).join('')}
+            <div style="margin-top:10px; font-weight:bold;">الإجمالي: ${order.total} ﷼</div>
+            <button class="btn-done" onclick="finish('${key}')">تم ✅</button>
+        </div>`;
+        document.getElementById('list').insertAdjacentHTML('afterbegin', card);
+    }
+
+    function printTicket(order) {
+        const g = group(order.items);
+        document.getElementById('print-area').innerHTML = `
+            <div style="text-align:center"><h2>شاهي وليف</h2><h1>${order.inv}</h1></div>
+            <p>النوع: ${order.type} (${order.detail})</p><hr>
+            ${g.map(i => `<div class="flex"><span>${i.qty} x ${i.name}</span></div>`).join('')}<hr>
+            <div class="flex"><b>الإجمالي</b> <b>${order.total} ﷼</b></div>`;
+        window.print();
+    }
+
+    function finish(key) { db.ref('orders/'+key).update({status:'done'}); document.getElementById('card-'+key).style.opacity='0.2'; }
+</script>
+</body>
+</html>
