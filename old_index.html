@@ -10,6 +10,26 @@
         :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; }
         body { background: var(--bg); margin: 0; font-family: 'Segoe UI', sans-serif; padding-bottom: 110px; }
         header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        
+        /* شاشة الانتظار والفاتورة */
+        #order-status-screen { 
+            position: fixed; inset: 0; background: white; z-index: 3000; 
+            display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+        }
+        .status-card { 
+            background: white; width: 100%; max-width: 350px; border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #eee; overflow: hidden;
+        }
+        .status-header { background: var(--p); color: white; padding: 20px; text-align: center; }
+        .status-body { padding: 20px; text-align: center; }
+        .order-num { font-size: 3em; font-weight: 900; color: var(--p); margin: 10px 0; }
+        .status-badge { 
+            display: inline-block; padding: 8px 20px; border-radius: 50px; 
+            background: #fff3cd; color: #856404; font-weight: bold; margin-bottom: 20px;
+        }
+        .order-summary { text-align: right; border-top: 1px dashed #ccc; padding-top: 15px; font-size: 0.9em; }
+
+        /* باقي تنسيقات المنيو الأصلية */
         .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .cat-item { background: white; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; cursor: pointer; font-weight: bold; }
         .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f4f4f4; }
@@ -23,21 +43,41 @@
 </head>
 <body>
 
+<!-- شاشة حالة الطلب (تظهر بعد الإرسال) -->
+<div id="order-status-screen">
+    <div class="status-card">
+        <div class="status-header">
+            <h3 style="margin:0;">تم استلام طلبك بنجاح</h3>
+        </div>
+        <div class="status-body">
+            <div id="current-status" class="status-badge">قيد الاستلام...</div>
+            <p style="margin:0; color:#666;">رقم طلبك هو:</p>
+            <div class="order-num" id="display-inv">0000</div>
+            
+            <div class="order-summary" id="display-items">
+                <!-- ملخص الطلب سيظهر هنا -->
+            </div>
+            
+            <button class="btn-opt" onclick="location.reload()" style="margin-top:20px; font-size:0.9em;">طلب جديد +</button>
+        </div>
+    </div>
+</div>
+
 <div id="order-type-overlay">
     <div class="type-box" id="step-1">
-        <h2 style="color:var(--p)">مرحباً بك في شاهي وليف</h2>
+        <h2 style="color:var(--p)">شاهي وليف</h2>
         <button class="btn-opt" onclick="showLocal()">🍽️ محلي</button>
         <button class="btn-opt" onclick="showTakeaway()">🥡 سفري</button>
     </div>
     <div class="type-box" id="local-in" style="display:none;">
         <h3>اختر الطاولة</h3>
         <select id="tbl-sel" style="width:100%; padding:15px; margin-bottom:15px; border-radius: 10px;"></select>
-        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('محلي')">ابدأ الطلب</button>
+        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('محلي')">دخول</button>
     </div>
     <div class="type-box" id="take-in" style="display:none;">
         <h3>رقم الجوال</h3>
         <input type="tel" id="phone-in" placeholder="05xxxxxxxx" style="width:100%; padding:15px; margin-bottom:15px; text-align:center; border-radius: 10px;">
-        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('سفري')">ابدأ الطلب</button>
+        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('سفري')">دخول</button>
     </div>
 </div>
 
@@ -94,9 +134,40 @@
     function sendOrder() {
         if(!cart.length) return alert("السلة فارغة");
         const inv = Math.floor(Math.random()*9000)+1000;
-        db.ref('orders/'+inv).set({
+        const orderData = {
             inv, type: oType, detail: oDetail, items: cart, total: total.toFixed(2), status: 'pending', timestamp: Date.now()
-        }).then(() => { alert("تم إرسال طلبك بنجاح!"); location.reload(); });
+        };
+
+        db.ref('orders/'+inv).set(orderData).then(() => {
+            showStatusScreen(inv, orderData);
+        });
+    }
+
+    // وظيفة عرض شاشة الحالة الجديدة
+    function showStatusScreen(inv, data) {
+        document.getElementById('main-ui').style.display = 'none';
+        document.getElementById('order-status-screen').style.display = 'flex';
+        document.getElementById('display-inv').innerText = inv;
+        
+        // تجميع الأصناف للعرض
+        const counts = {};
+        data.items.forEach(i => counts[i.name] = (counts[i.name] || 0) + 1);
+        const itemsHtml = Object.keys(counts).map(name => `<div>${name} x ${counts[name]}</div>`).join('');
+        document.getElementById('display-items').innerHTML = itemsHtml + `<div style="font-weight:bold; margin-top:10px;">الإجمالي: ${data.total} ﷼</div>`;
+
+        // مراقبة الحالة مباشرة من القاعدة (لو غيرتها أنت في شاشة الـ Admin تظهر للزبون)
+        db.ref('orders/'+inv+'/status').on('value', snap => {
+            const status = snap.val();
+            const badge = document.getElementById('current-status');
+            if(status === 'pending') {
+                badge.innerText = "⏳ تم استلام الطلب";
+                badge.style.background = "#fff3cd";
+            } else if(status === 'ready' || status === 'completed') {
+                badge.innerText = "✅ طلبك جاهز!";
+                badge.style.background = "#d4edda";
+                badge.style.color = "#155724";
+            }
+        });
     }
 </script>
 </body>
