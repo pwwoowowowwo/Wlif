@@ -7,52 +7,56 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; }
-        body { background: var(--bg); margin: 0; font-family: 'Segoe UI', sans-serif; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; --ready: #28a745; }
+        body { background: var(--bg); margin: 0; font-family: 'Segoe UI', sans-serif; color: #333; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
 
-        /* شاشة الترحيب الأولية */
+        /* 1. اللوحة الترحيبية بالعربي */
         #welcome-screen { position: fixed; inset: 0; background: var(--p); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease; }
-        .welcome-logo { width: 100px; height: 100px; border: 3px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1.5em; font-weight: 900; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .welcome-logo { width: 120px; height: 120px; border: 3px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1.2em; font-weight: 900; animation: pulse 2s infinite; text-align: center; line-height: 1.2; }
+        .version-text { color: rgba(197, 160, 89, 0.6); font-size: 10px; margin-top: 15px; font-family: monospace; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0px var(--gold); } 50% { transform: scale(1.05); box-shadow: 0 0 20px var(--gold); } }
 
-        /* هيدر الصفحة - الاسم في المنتصف فوق */
-        header { 
-            background: white; 
-            padding: 20px 15px; 
-            text-align: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-            position: sticky; 
-            top: 0; 
-            z-index: 100; 
-        }
+        /* 2. هيدر الاسم في المنتصف */
+        header { background: white; padding: 20px 15px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         header h1 { color: var(--p); margin: 0; font-size: 1.8em; font-weight: 900; }
-        #info-tag { color: var(--gold); font-size: 13px; font-weight: bold; margin-top: 5px; }
 
-        /* ستايل دائرة التحميل (الرادار) */
-        .loader-container { text-align: center; padding: 80px 20px; color: var(--p); }
-        .spinner { width: 50px; height: 50px; border: 3px solid rgba(197, 160, 89, 0.2); border-top: 3px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeText { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        /* 3. بطاقة حالة الطلب المبهرة */
+        #order-status-card { 
+            display: none; background: #1a1a1a; margin: 15px; border-radius: 20px; 
+            padding: 20px; color: white; position: relative; overflow: hidden;
+            border: 1px solid var(--gold); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .status-glow { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(197, 160, 89, 0.1) 0%, transparent 70%); animation: rotateGlow 10s linear infinite; }
+        @keyframes rotateGlow { 100% { transform: rotate(360deg); } }
+        .order-info-grid { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; }
+        .order-number-box { background: var(--p); padding: 8px 12px; border-radius: 12px; border: 1px solid var(--gold); }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 8px; }
+        .dot-pending { background: #ffc107; box-shadow: 0 0 10px #ffc107; animation: blink 1s infinite; }
+        .dot-ready { background: var(--ready); box-shadow: 0 0 15px var(--ready); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* قائمة الأقسام والمنتجات */
+        /* 4. نظام التحميل لمنع الشاشة البيضاء */
+        .loader-container { text-align: center; padding: 60px 20px; color: var(--p); }
+        .spinner { width: 45px; height: 45px; border: 3px solid rgba(197, 160, 89, 0.2); border-top: 3px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* 5. تصميم المنيو والمنتجات والملاحظات */
         .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .cat-item { background: white; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; cursor: pointer; font-weight: bold; }
         
         .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 20px; border: 1px solid #f0f0f0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .prod-header { display: flex; justify-content: space-between; align-items: center; }
+        .prod-row { display: flex; justify-content: space-between; align-items: center; }
         .controls { display: flex; align-items: center; gap: 12px; }
-        .btn-qty { width: 34px; height: 34px; border-radius: 10px; border: none; font-size: 1.2em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .btn-minus { background: #eee; color: #666; }
-        .btn-plus { background: var(--p); color: white; }
+        .btn-qty { width: 34px; height: 34px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-minus { background: #eee; } .btn-plus { background: var(--p); color: white; }
+        
+        /* حقل الملاحظات المستعاد */
         .note-input { width: 100%; border: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 0.85em; margin-top: 10px; border-right: 3px solid var(--gold); outline: none; box-sizing: border-box; }
 
         .cart-bar { position: fixed; bottom: 65px; left: 15px; right: 15px; background: #231815; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; z-index: 1000; }
         .checkout-btn { background: var(--gold); color: #231815; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
 
-        /* التذييل */
         footer { background: #fff; text-align: center; padding: 15px; font-size: 11px; color: #888; border-top: 1px solid #eee; margin-top: auto; }
-        footer b { color: var(--gold); }
-
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; }
         .modal-box { background: white; width: 100%; max-width: 400px; border-radius: 25px; padding: 20px; text-align: center; }
         .btn-opt { display: block; width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid var(--p); border-radius: 15px; font-weight: bold; cursor: pointer; background: white; color: var(--p); }
@@ -60,94 +64,95 @@
 </head>
 <body>
 
-<div id="welcome-screen"><div class="welcome-logo">Wlif</div></div>
-
-<div id="order-type-overlay" style="position:fixed; inset:0; background:var(--p); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;">
-    <div class="modal-box" id="step-1">
-        <h2 style="color:var(--p)">مرحباً بك في وليف</h2>
-        <button class="btn-opt" onclick="showLocal()">🍽️ طلب محلي</button>
-        <button class="btn-opt" onclick="showTakeaway()">🥡 طلب سفري</button>
-    </div>
-    <div class="modal-box" id="local-in" style="display:none;">
-        <h3>اختر رقم الطاولة</h3>
-        <div id="tables-container" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-height:200px; overflow-y:auto; padding:10px;"></div>
-        <button class="btn-opt" id="start-local-btn" style="background:var(--p); color:white; margin-top:15px; opacity:0.5;" disabled onclick="startApp('محلي')">دخول للمنيو</button>
-    </div>
-    <div class="modal-box" id="take-in" style="display:none;">
-        <h3>رقم الجوال</h3>
-        <input type="tel" id="phone-in" placeholder="05xxxxxxxx" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #ddd; text-align:center; font-size: 1.1em;">
-        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('سفري')">دخول للمنيو</button>
-    </div>
+<div id="welcome-screen">
+    <div class="welcome-logo">شاهي<br>وليف</div>
+    <div class="version-text">V1.5.0</div>
 </div>
 
 <div id="main-ui" style="display:none; flex:1; flex-direction: column;">
-    <header>
-        <h1>شاهي وليف</h1>
-        <div id="info-tag"></div>
-    </header>
+    <header><h1>شاهي وليف</h1><div id="info-tag" style="color:var(--gold); font-size:12px; font-weight:bold;"></div></header>
+
+    <div id="order-status-card">
+        <div class="status-glow"></div>
+        <div class="order-info-grid">
+            <div class="order-number-box">
+                <small style="display:block; font-size:9px; opacity:0.8;">رقم الطلب</small>
+                <b id="st-id" style="font-size:1.4em; color:var(--gold);">0000</b>
+            </div>
+            <div style="text-align: left; display:flex; align-items:center;">
+                <div style="text-align: right; margin-left:10px;">
+                    <span id="st-text" style="font-weight: bold; display: block; font-size:0.9em;">جاري المعالجة...</span>
+                    <small id="st-time" style="opacity: 0.6; font-size: 10px;"></small>
+                </div>
+                <div id="st-dot" class="status-dot"></div>
+            </div>
+        </div>
+    </div>
     
     <div id="categories-view"><div class="cat-grid" id="cat-list"></div></div>
     
     <div id="products-view" style="display:none; flex:1;">
-        <div onclick="backToCategories()" style="padding:15px; color:var(--p); font-weight:bold; cursor:pointer; font-size: 1.1em;">🔙 العودة للأقسام</div>
+        <div onclick="backToCategories()" style="padding:15px; color:var(--p); font-weight:bold; cursor:pointer;">🔙 العودة للأقسام</div>
         <div id="products-list"></div>
     </div>
 
     <div class="cart-bar">
-        <div id="total-display" style="font-weight:bold; font-size: 1.2em;">0.00 ﷼</div>
+        <div id="total-display" style="font-weight:bold; font-size:1.1em;">0.00 ﷼</div>
         <button class="checkout-btn" onclick="openReview()">إرسال الطلب</button>
     </div>
-
-    <footer>
-        جميع الحقوق محفوظة © <b>فهد مرزوق المخلفي</b> | 2026م
-    </footer>
+    <footer>جميع الحقوق محفوظة © <b>فهد مرزوق المخلفي</b> | 2026م</footer>
 </div>
 
-<div id="review-modal" class="modal-overlay">
+<div id="order-type-overlay" style="position:fixed; inset:0; background:var(--p); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;">
     <div class="modal-box">
-        <h3 style="color:var(--p)">مراجعة طلبك</h3>
-        <div id="review-list" style="text-align:right; max-height:250px; overflow-y:auto; padding:10px;"></div>
-        <hr><div style="display:flex; justify-content:space-between; font-weight:bold; margin:10px 0; font-size:1.2em;"><span>الإجمالي:</span><span id="review-total">0.00 ﷼</span></div>
-        <button class="btn-opt" style="background:var(--p); color:white;" onclick="confirmAndSend()">تأكيد وإرسال ✅</button>
-        <button class="btn-opt" style="border:none; color:#666;" onclick="closeReview()">تعديل</button>
+        <h2 style="color:var(--p)">مرحباً بك في وليف</h2>
+        <button class="btn-opt" onclick="oType='محلي'; oDetail='طاولة 1'; startApp()">🍽️ طلب محلي</button>
+        <button class="btn-opt" onclick="oType='سفري'; oDetail='جوال'; startApp()">🥡 طلب سفري</button>
     </div>
 </div>
 
 <script>
-    let allProducts = JSON.parse(localStorage.getItem('wlif_cache')) || {};
-    let cart = {}, oType = "", oDetail = "", selectedTable = null;
-
+    let allProducts = {}, cart = {}, oType = "", oDetail = "";
     const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // بناء شبكة الطاولات
-    const tg = document.getElementById('tables-container');
-    for(let i=1; i<=20; i++) {
-        let b = document.createElement('div'); 
-        b.style = "padding:12px; background:#f0f0f0; border-radius:10px; cursor:pointer; font-weight:bold; text-align:center; border:1px solid #ddd;";
-        b.innerText = i; 
-        b.onclick = () => { 
-            Array.from(tg.children).forEach(x=>{ x.style.background="#f0f0f0"; x.style.color="#333"; });
-            b.style.background = "#c5a059"; b.style.color="white"; selectedTable = i;
-            document.getElementById('start-local-btn').disabled = false;
-            document.getElementById('start-local-btn').style.opacity = 1;
-        }; tg.appendChild(b);
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('welcome-screen').style.opacity = 0;
+            setTimeout(() => document.getElementById('welcome-screen').style.display = 'none', 600);
+        }, 1500);
+        checkActiveOrder();
+        db.ref('products').on('value', s => { allProducts = s.val() || {}; renderCats(); });
+    };
+
+    function checkActiveOrder() {
+        const lastId = localStorage.getItem('last_wlif_order');
+        if(lastId) {
+            db.ref('orders/' + lastId).on('value', snap => {
+                const order = snap.val();
+                if(order) {
+                    document.getElementById('order-status-card').style.display = 'block';
+                    document.getElementById('st-id').innerText = order.inv;
+                    document.getElementById('st-time').innerText = new Date(order.timestamp).toLocaleTimeString('ar-SA');
+                    const dot = document.getElementById('st-dot');
+                    const txt = document.getElementById('st-text');
+                    if(order.status === 'pending') {
+                        dot.className = "status-dot dot-pending";
+                        txt.innerText = "تم استلام طلبك ⏳";
+                        txt.style.color = "#ffc107";
+                    } else {
+                        dot.className = "status-dot dot-ready";
+                        txt.innerText = "طلبك جاهز ✅";
+                        txt.style.color = "var(--ready)";
+                    }
+                }
+            });
+        }
     }
 
-    // مزامنة البيانات من السيرفر
-    db.ref('products').on('value', snap => {
-        if(snap.exists()){ allProducts = snap.val(); localStorage.setItem('wlif_cache', JSON.stringify(allProducts)); renderCats(); }
-    });
-
-    window.onload = () => setTimeout(() => {
-        document.getElementById('welcome-screen').style.opacity = 0;
-        setTimeout(() => document.getElementById('welcome-screen').style.display = 'none', 600);
-        renderCats();
-    }, 1200);
-
     function renderCats() {
-        const cats = {tea:'☕ شاي', karak:'🍯 كرك', bakery:'🥐 مخبوزات', extras:'➕ إضافات ✨', games:'🥮 طلبات جانبية'};
+        const cats = {tea:'☕ شاي', karak:'🍯 كرك', bakery:'🥐 مخبوزات', extras:'➕ إضافات ✨', games:'🥮 جانبية'};
         document.getElementById('cat-list').innerHTML = Object.keys(cats).map(k => `
             <div class="cat-item" onclick="openCategory('${k}')">${cats[k]}</div>
         `).join('');
@@ -157,31 +162,19 @@
         document.getElementById('categories-view').style.display = 'none';
         document.getElementById('products-view').style.display = 'block';
         const list = document.getElementById('products-list');
+        list.innerHTML = `<div class="loader-container"><div class="spinner"></div><p style="font-weight:bold;">جاري تحميل الأصناف...</p></div>`;
         
-        // شاشة "انتظر قليلاً" بدلاً من الصفحة البيضاء
-        list.innerHTML = `
-            <div class="loader-container">
-                <div class="spinner"></div>
-                <p style="animation: fadeText 1.5s infinite; font-weight:bold;">انتظر قليلاً حتى يتم تحميل الأصناف...</p>
-            </div>
-        `;
-
-        // محاكاة تحميل بسيطة لضمان السلاسة
         setTimeout(() => {
             const ids = Object.keys(allProducts).filter(id => String(allProducts[id].cat).trim() === k);
-            if(!ids.length) {
-                list.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>لا يوجد أصناف متوفرة حالياً</p>";
-                return;
-            }
             list.innerHTML = ids.map(id => {
-                const p = allProducts[id]; const q = cart[id] ? cart[id].qty : 0;
-                return `
-                <div class="product-card">
-                    <div class="prod-header">
+                const p = allProducts[id];
+                const q = cart[id] ? cart[id].qty : 0;
+                return `<div class="product-card">
+                    <div class="prod-row">
                         <div><b>${p.name}</b><br><small style="color:var(--gold); font-weight:bold;">${p.price} ﷼</small></div>
                         <div class="controls">
                             <button class="btn-qty btn-minus" onclick="updQty('${id}',-1)">-</button>
-                            <span id="qty-${id}" style="font-weight:bold; min-width:20px; text-align:center;">${q}</span>
+                            <span id="qty-${id}">${q}</span>
                             <button class="btn-qty btn-plus" onclick="updQty('${id}',1)">+</button>
                         </div>
                     </div>
@@ -193,40 +186,32 @@
 
     function updQty(id, c) {
         if(!cart[id] && c>0) cart[id] = {name:allProducts[id].name, price:parseFloat(allProducts[id].price), qty:0, note:""};
-        if(cart[id]){
-            cart[id].qty += c; if(cart[id].qty <= 0) delete cart[id];
-            updateUI(); const el = document.getElementById(`qty-${id}`); if(el) el.innerText = cart[id] ? cart[id].qty : 0;
+        if(cart[id]) { 
+            cart[id].qty += c; 
+            if(cart[id].qty<=0) delete cart[id]; 
+            updateUI(); 
+            if(document.getElementById(`qty-${id}`)) document.getElementById(`qty-${id}`).innerText = cart[id]?cart[id].qty:0; 
         }
     }
     function updNote(id, v){ if(cart[id]) cart[id].note = v; }
-    function updateUI(){
-        let t = 0; Object.values(cart).forEach(i => t += i.price * i.qty);
-        document.getElementById('total-display').innerText = t.toFixed(2) + " ﷼";
-    }
-    function backToCategories(){ document.getElementById('categories-view').style.display='block'; document.getElementById('products-view').style.display='none'; }
-    function showLocal(){ document.getElementById('step-1').style.display='none'; document.getElementById('local-in').style.display='block'; }
-    function showTakeaway(){ document.getElementById('step-1').style.display='none'; document.getElementById('take-in').style.display='block'; }
-    function startApp(t){
-        oType = t; oDetail = (t==='محلي') ? "طاولة " + selectedTable : document.getElementById('phone-in').value || "سفري";
-        document.getElementById('order-type-overlay').style.display = 'none';
-        document.getElementById('main-ui').style.display = 'flex';
-        document.getElementById('info-tag').innerText = oType + " | " + oDetail;
-    }
+    function updateUI() { let t=0; Object.values(cart).forEach(i=>t+=i.price*i.qty); document.getElementById('total-display').innerText = t.toFixed(2)+" ﷼"; }
+    function backToCategories() { document.getElementById('categories-view').style.display='block'; document.getElementById('products-view').style.display='none'; }
+    function startApp(){ document.getElementById('order-type-overlay').style.display='none'; document.getElementById('main-ui').style.display='flex'; document.getElementById('info-tag').innerText = oType + " | " + oDetail; }
+    
     function openReview() {
-        const items = Object.values(cart); if(!items.length) return alert("الرجاء إضافة أصناف للسلة أولاً");
-        let t = 0; document.getElementById('review-list').innerHTML = items.map(i => {
-            t += i.price * i.qty;
-            return `<div style="margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:5px;"><b>${i.name} x${i.qty}</b> - ${(i.price*i.qty).toFixed(2)} ﷼ ${i.note?'<br><small style="color:var(--gold)">💡 '+i.note+'</small>':''}</div>`;
-        }).join('');
-        document.getElementById('review-total').innerText = t.toFixed(2) + " ﷼";
-        document.getElementById('review-modal').style.display = 'flex';
+        const items = Object.values(cart); if(!items.length) return alert("الرجاء اختيار أصناف أولاً");
+        confirmAndSend();
     }
-    function closeReview(){ document.getElementById('review-modal').style.display='none'; }
+
     function confirmAndSend() {
         const inv = Math.floor(Math.random()*9000)+1000;
-        let t = 0; Object.values(cart).forEach(i => t += i.price * i.qty);
+        let t=0; Object.values(cart).forEach(i=>t+=i.price*i.qty);
         const data = { inv, type:oType, detail:oDetail, items:Object.values(cart), total:t.toFixed(2), status:'pending', timestamp:Date.now() };
-        db.ref('orders/'+inv).set(data).then(() => { alert("✅ تم إرسال طلبك بنجاح! رقم طلبك هو: " + inv); location.reload(); });
+        db.ref('orders/'+inv).set(data).then(() => {
+            localStorage.setItem('last_wlif_order', inv);
+            alert("✅ تم إرسال طلبك بنجاح! رقم الطلب: " + inv);
+            location.reload(); 
+        });
     }
 </script>
 </body>
