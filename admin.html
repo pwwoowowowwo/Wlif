@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة مراقبة طلبات وليف</title>
+    <title>لوحة مراقبة وليف | V2.0.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
@@ -11,7 +11,7 @@
         :root { --p: #630000; --gold: #c5a059; --bg: #1a1a1a; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; }
         
-        /* شريط الحالة والتحكم العلوي */
+        /* شريط الحالة المعتمد */
         .status-bar { 
             position: fixed; top: 0; left: 0; right: 0; 
             background: rgba(0,0,0,0.8); padding: 10px 20px;
@@ -22,47 +22,54 @@
         .dot { width: 12px; height: 12px; background: #00ff00; border-radius: 50%; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 
-        /* زر المسح */
-        .btn-clear { 
-            background: #cc0000; color: white; border: none; 
-            padding: 8px 15px; border-radius: 8px; cursor: pointer; 
-            font-weight: bold; font-size: 13px; transition: 0.3s;
-        }
-        .btn-clear:hover { background: #ff0000; transform: scale(1.05); }
-
-        /* شاشة الرادار (عند فراغ الطلبات) */
+        /* --- تصميم "الشمس" والرادار الجديد --- */
         #empty-state { 
             display: none; height: 100vh; flex-direction: column; 
             align-items: center; justify-content: center; 
-            background: radial-gradient(circle, #2a0000 0%, #1a1a1a 100%); 
+            background: radial-gradient(circle, #2a0000 0%, #000 100%); 
         }
-        .radar { 
-            width: 150px; height: 150px; border: 2px solid var(--gold); 
-            border-radius: 50%; position: relative; animation: radar-pulse 2s infinite; 
+        .sun-container { position: relative; width: 250px; height: 250px; display: flex; align-items: center; justify-content: center; }
+        
+        /* النقطة المركزية (الشمس المتوهجة) */
+        .sun-core { 
+            width: 30px; height: 30px; background: var(--gold); border-radius: 50%; 
+            box-shadow: 0 0 30px var(--gold), 0 0 60px var(--gold);
+            z-index: 5;
         }
-        @keyframes radar-pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
-        .radar-center { position: absolute; top:50%; left:50%; transform:translate(-50%, -50%); width: 25px; height: 25px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 20px var(--gold); }
 
-        /* عرض الطلبات */
-        .orders-container { padding: 80px 20px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        /* هالة النبض (الرادار) */
+        .pulse-ring {
+            position: absolute; border: 1.5px solid var(--gold); border-radius: 50%;
+            animation: sun-pulse 3s linear infinite; opacity: 0;
+        }
+        .ring-1 { animation-delay: 0s; }
+        .ring-2 { animation-delay: 1s; }
+        .ring-3 { animation-delay: 2s; }
+
+        @keyframes sun-pulse {
+            0% { width: 40px; height: 40px; opacity: 0.8; }
+            100% { width: 250px; height: 250px; opacity: 0; border-width: 0.5px; }
+        }
+
+        /* تصميم البطاقات الراقصة المعتمد */
+        .orders-container { padding: 80px 20px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         .order-card { 
             background: #252525; border-radius: 15px; padding: 20px; 
             border-top: 4px solid var(--gold); position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: floating-dance 4s ease-in-out infinite;
         }
-        .pending-anim { border-top-color: #00ff00; animation: card-glow 2s infinite; }
-        @keyframes card-glow { 0% { box-shadow: 0 0 5px rgba(0,255,0,0.2); } 50% { box-shadow: 0 0 20px rgba(0,255,0,0.4); } 100% { box-shadow: 0 0 5px rgba(0,255,0,0.2); } }
+        @keyframes floating-dance {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
 
         .order-id { font-size: 1.5em; font-weight: 900; color: var(--gold); }
-        .order-type { background: var(--p); padding: 3px 10px; border-radius: 5px; font-size: 12px; }
         .item-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
-        .note { font-size: 12px; color: #aaa; font-style: italic; display: block; margin-top: 2px; }
-        
-        .btn-ready { 
-            background: #28a745; color: white; border: none; padding: 15px; 
-            width: 100%; border-radius: 10px; cursor: pointer; margin-top: 15px; 
-            font-weight: bold; font-size: 1.1em;
-        }
+        .note { font-size: 12px; color: var(--gold); display: block; margin-top: 5px; background: rgba(197, 160, 89, 0.1); padding: 5px; border-radius: 5px; }
+
+        .btn-receive { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .btn-ready { background: #28a745; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -70,112 +77,71 @@
     <div class="status-bar">
         <div class="info-side">
             <div id="status-dot" class="dot"></div>
-            <span id="status-text">جاري الاتصال...</span>
+            <span id="status-text">متصل - مراقبة حية</span>
         </div>
-        <button class="btn-clear" onclick="clearAllOrders()">🗑️ مسح جميع الطلبات</button>
+        <button onclick="if(confirm('مسح الكل؟')) db.ref('orders').remove()" style="background:#cc0000; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">🗑️ مسح جميع الطلبات</button>
     </div>
 
     <audio id="notif-sound" loop src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
     <div id="empty-state">
-        <div class="radar"></div>
-        <div class="radar-center"></div>
-        <h2 style="margin-top:40px; color:var(--gold); letter-spacing: 2px;">نظام شاهي وليف جاهز</h2>
+        <div class="sun-container">
+            <div class="sun-core"></div>
+            <div class="pulse-ring ring-1"></div>
+            <div class="pulse-ring ring-2"></div>
+            <div class="pulse-ring ring-3"></div>
+        </div>
+        <h2 style="margin-top:30px; color:var(--gold); font-weight: 900; letter-spacing: 2px;">نظام شاهي وليف جاهز</h2>
         <p style="opacity:0.6">لا توجد طلبات معلقة حالياً</p>
     </div>
 
     <div id="orders-list" class="orders-container"></div>
 
 <script>
-    // ربط الرابط بقاعدة البيانات الخاصة بك
     const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. مراقبة جودة الاتصال بالإنترنت
-    db.ref('.info/connected').on('value', snap => {
-        const dot = document.getElementById('status-dot');
-        const txt = document.getElementById('status-text');
-        if(snap.val() === true) {
-            dot.style.background = "#00ff00";
-            txt.innerText = "متصل - مراقبة حية";
-        } else {
-            dot.style.background = "#ff0000";
-            txt.innerText = "انقطع الاتصال بالإنترنت!";
-        }
-    });
-
-    // 2. جلب الطلبات ومعالجتها
     db.ref('orders').on('value', snap => {
         const orders = snap.val() || {};
-        const orderIds = Object.keys(orders).reverse(); 
-        renderOrders(orders, orderIds);
-        
-        // تشغيل التنبيه لو فيه طلب "معلق"
-        const hasNew = orderIds.some(id => orders[id].status === 'pending');
-        if(hasNew) {
-            document.getElementById('notif-sound').play().catch(()=>{});
-        } else {
-            document.getElementById('notif-sound').pause();
-        }
+        const ids = Object.keys(orders).reverse();
+        const hasNew = ids.some(id => orders[id].status === 'pending' && !orders[id].received);
+        if(hasNew) document.getElementById('notif-sound').play().catch(()=>{}); else document.getElementById('notif-sound').pause();
+        renderOrders(orders, ids);
     });
 
     function renderOrders(data, ids) {
         const container = document.getElementById('orders-list');
-        const emptyState = document.getElementById('empty-state');
-        
-        if(ids.length === 0) {
-            container.innerHTML = "";
-            emptyState.style.display = "flex";
-            return;
-        }
-        
-        emptyState.style.display = "none";
+        const empty = document.getElementById('empty-state');
+        if(!ids.length) { container.innerHTML = ""; empty.style.display = "flex"; return; }
+        empty.style.display = "none";
+
         container.innerHTML = ids.map(id => {
             const o = data[id];
-            const isPending = o.status === 'pending';
-            
             return `
-                <div class="order-card ${isPending ? 'pending-anim' : ''}">
+                <div class="order-card ${o.status === 'pending' && !o.received ? 'pending-anim' : ''}">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <span class="order-id">#${o.inv}</span>
-                        <span class="order-type">${o.type} - ${o.detail}</span>
+                        <span style="background:var(--p); padding:3px 10px; border-radius:5px; font-size:12px;">${o.type}</span>
                     </div>
                     <div>
                         ${o.items.map(i => `
                             <div class="item-row">
                                 <span>${i.name} <b>x${i.qty}</b></span>
-                                <span>${(i.price * i.qty).toFixed(2)} ﷼</span>
-                                ${i.note ? `<br><small class="note">💡 ${i.note}</small>` : ''}
+                                <span>${(i.price*i.qty).toFixed(2)} ﷼</span>
+                                ${i.note ? `<small class="note">💡 ${i.note}</small>` : ''}
                             </div>
                         `).join('')}
                     </div>
-                    <div style="text-align:left; margin-top:15px; font-size:1.2em; font-weight:bold; color:var(--gold)">
-                        الإجمالي: ${o.total} ﷼
-                    </div>
-                    ${isPending ? `<button class="btn-ready" onclick="setReady('${id}')">تم التجهيز ✔️</button>` : 
-                    `<div style="text-align:center; color:#28a745; margin-top:10px; font-weight:bold;">جاهز ✅</div>`}
+                    <div style="text-align:left; margin-top:15px; font-size:1.2em; font-weight:bold; color:var(--gold)">الإجمالي: ${o.total} ﷼</div>
+                    ${!o.received ? `<button class="btn-receive" onclick="db.ref('orders/${id}').update({received:true})">تم الاستلام 🔕</button>` : ''}
+                    ${o.status === 'pending' ? `<button class="btn-ready" onclick="db.ref('orders/${id}').update({status:'ready', received:true})">تم التجهيز ✔️</button>` : `<div style="text-align:center; color:#28a745; margin-top:10px; font-weight:bold;">جاهز ✅</div>`}
                 </div>
             `;
         }).join('');
     }
 
-    function setReady(id) {
-        db.ref('orders/' + id).update({ status: 'ready' });
-    }
-
-    // دالة مسح جميع الطلبات (تنظيف السجل)
-    function clearAllOrders() {
-        if(confirm("سيتم حذف جميع الطلبات من الشاشة ومن قاعدة البيانات، هل أنت متأكد؟")) {
-            db.ref('orders').remove();
-        }
-    }
-
-    // تفعيل الصوت (ضروري الضغط مرة واحدة على الشاشة عند فتحها)
-    window.onclick = () => { 
-        document.getElementById('notif-sound').muted = false;
-        console.log("تم تفعيل نظام الصوت");
-    };
+    window.onclick = () => { document.getElementById('notif-sound').muted = false; };
 </script>
 </body>
 </html>
