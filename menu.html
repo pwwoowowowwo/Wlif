@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>شاهي وليف - اطلب الآن</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; }
+        body { background: var(--bg); margin: 0; font-family: 'Segoe UI', sans-serif; padding-bottom: 110px; }
+        header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        .cat-item { background: white; border-radius: 15px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; font-weight: bold; border: 1px solid #eee; }
+        .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f0f0f0; }
+        .add-btn { background: var(--p); color: white; border: none; width: 42px; height: 42px; border-radius: 12px; font-size: 22px; cursor: pointer; }
+        .cart-bar { position: fixed; bottom: 20px; left: 15px; right: 15px; background: #231815; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; z-index: 1000; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .checkout-btn { background: var(--gold); color: #231815; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 900; cursor: pointer; }
+        #order-type-overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .type-box { background: white; padding: 30px 20px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
+        .btn-opt { display: block; width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid var(--p); border-radius: 15px; font-weight: bold; cursor: pointer; background: white; color: var(--p); font-size: 1.1em; }
+    </style>
+</head>
+<body>
+
+<div id="order-type-overlay">
+    <div class="type-box" id="step-1">
+        <h2 style="color:var(--p)">مرحباً بك في شاهي وليف</h2>
+        <button class="btn-opt" onclick="showLocal()">🍽️ محلي</button>
+        <button class="btn-opt" onclick="showTakeaway()">🥡 سفري</button>
+    </div>
+    <div class="type-box" id="local-in" style="display:none;">
+        <h3>اختر الطاولة</h3>
+        <select id="tbl-sel" style="width:100%; padding:15px; margin-bottom:15px; border-radius: 10px;"></select>
+        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('محلي')">ابدأ الطلب</button>
+    </div>
+    <div class="type-box" id="take-in" style="display:none;">
+        <h3>رقم الجوال</h3>
+        <input type="tel" id="phone-in" placeholder="05xxxxxxxx" style="width:100%; padding:15px; margin-bottom:15px; text-align:center; border-radius: 10px; border:1px solid #ccc;">
+        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('سفري')">ابدأ الطلب</button>
+    </div>
+</div>
+
+<div id="main-ui" style="display:none;">
+    <header><h1 style="color:var(--p); margin:0;">شاهي وليف</h1><div id="info-tag" style="color:var(--gold); font-weight:bold;"></div></header>
+    <div id="categories-view"><div class="cat-grid" id="cat-list"></div></div>
+    <div id="products-view" style="display:none;">
+        <div onclick="backToCategories()" style="padding:15px; color:var(--p); cursor:pointer; font-weight:bold;">⬅️ العودة</div>
+        <div id="products-list"></div>
+    </div>
+    <div class="cart-bar">
+        <div id="total" style="font-size: 1.2em; font-weight: bold;">0.00 ﷼</div>
+        <button class="checkout-btn" onclick="sendOrder()">إرسال الطلب 🖨️</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let oType = "", oDetail = "", cart = [], total = 0, allProducts = {};
+
+    const sel = document.getElementById('tbl-sel');
+    for(let i=1; i<=20; i++) sel.innerHTML += `<option value="${i}">طاولة ${i}</option>`;
+
+    function showLocal() { document.getElementById('step-1').style.display='none'; document.getElementById('local-in').style.display='block'; }
+    function showTakeaway() { document.getElementById('step-1').style.display='none'; document.getElementById('take-in').style.display='block'; }
+    
+    function startApp(t) { 
+        oType = t; 
+        oDetail = (t==='محلي') ? "طاولة "+document.getElementById('tbl-sel').value : (document.getElementById('phone-in').value || "سفري");
+        document.getElementById('order-type-overlay').style.display='none';
+        document.getElementById('main-ui').style.display='block';
+        document.getElementById('info-tag').innerText = oType + " | " + oDetail;
+    }
+
+    db.ref('products').on('value', snap => {
+        allProducts = snap.val() || {};
+        const cats = {tea:'☕ شاي', karak:'🍯 كرك', bakery:'🥐 مخبوزات', games:'🥮 طلبات جانبية'};
+        document.getElementById('cat-list').innerHTML = Object.keys(cats).map(k => `
+            <div class="cat-item" onclick="openCategory('${k}')">${cats[k]}</div>
+        `).join('');
+    });
+
+    function openCategory(k) {
+        document.getElementById('categories-view').style.display='none';
+        document.getElementById('products-view').style.display='block';
+        const filtered = Object.keys(allProducts).filter(id => allProducts[id].cat === k);
+        document.getElementById('products-list').innerHTML = filtered.map(id => `
+            <div class="product-card">
+                <div><b>${allProducts[id].name}</b><br><small>${allProducts[id].price} ﷼</small></div>
+                <button class="add-btn" onclick="add('${allProducts[id].name}', ${allProducts[id].price})">+</button>
+            </div>
+        `).join('');
+    }
+
+    function backToCategories() { document.getElementById('categories-view').style.display='block'; document.getElementById('products-view').style.display='none'; }
+    function add(n, p) { cart.push({name:n, price:p}); total += p; document.getElementById('total').innerText = total.toFixed(2) + " ﷼"; }
+
+    function sendOrder() {
+        if(!cart.length) return alert("السلة فارغة");
+        const inv = Math.floor(Math.random()*9000)+1000;
+        db.ref('orders/'+inv).set({
+            inv, type: oType, detail: oDetail, items: cart, total: total.toFixed(2),
+            status: 'pending', timestamp: Date.now()
+        }).then(() => {
+            alert("تم إرسال طلبك!");
+            location.reload();
+        });
+    }
+</script>
+</body>
+</html>
