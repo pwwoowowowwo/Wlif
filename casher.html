@@ -3,252 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كاشير شاهي وليف - نظام البيع المستقل</title>
     
-    <!-- مكتبات Firebase الأساسية -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>شاهي وليف - المنيو الذكي والطباعة</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
     <style>
-        :root { 
-            --maroon: #5a0000; 
-            --gold: #d4af37; 
-            --bg: #fdfdfd; 
-            --success: #27ae60;
-            --sidebar-w: 360px;
-        }
-        
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* الترويسة بستايل شاهي وليف */
-        header { 
-            height: 70px; background: linear-gradient(135deg, var(--maroon), #3d0000); 
-            color: white; display: flex; align-items: center; padding: 0 20px; 
-            justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
+        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; --text: #2d1b17; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); margin: 0; color: var(--text); padding-bottom: 120px; overflow-x: hidden; }
 
-        .app-main { display: flex; flex: 1; overflow: hidden; }
-        
-        /* قائمة المنتجات */
-        .products-section { flex: 1; display: flex; flex-direction: column; background: #f8f9fa; }
-        .tabs-container { display: flex; padding: 15px; gap: 10px; overflow-x: auto; background: white; border-bottom: 1px solid #eee; }
-        
-        .tab { 
-            padding: 10px 25px; border-radius: 12px; border: 1px solid #ddd; 
-            background: #eee; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap;
-        }
-        .tab.active { background: var(--maroon); color: white; border-color: var(--maroon); }
-        
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; }
-        
-        .p-card { 
-            background: white; border-radius: 20px; padding: 20px 10px; text-align: center; 
-            cursor: pointer; border: 1px solid #f0f0f0; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .p-card:active { transform: scale(0.95); background: #fffcf0; }
-        .p-card b { display: block; margin-bottom: 10px; font-size: 14px; }
-        .p-card span { color: var(--maroon); font-weight: 800; font-size: 1.1rem; }
+        /* Splash & Overlays */
+        #splash { position: fixed; inset: 0; background: white; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.5s; }
+        .loader { width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #order-type-overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .type-box { background: white; padding: 30px 20px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
+        .btn-opt { display: block; width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid var(--p); border-radius: 15px; font-weight: bold; cursor: pointer; background: white; color: var(--p); font-size: 1.1em; transition: 0.2s; }
+        .btn-opt:active { background: var(--p); color: white; }
 
-        /* السلة الجانبية */
-        .sidebar { width: var(--sidebar-w); background: white; border-right: 1px solid #eee; display: flex; flex-direction: column; padding: 20px; }
-        .cart-list { flex: 1; overflow-y: auto; }
-        .cart-row { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
-        .cart-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; }
-        
-        .qty-controls { display: flex; align-items: center; gap: 12px; }
-        .qty-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; font-size: 18px; }
-        .qty-btn:hover { background: #f0f0f0; }
+        /* UI Elements */
+        header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; max-width: 600px; margin: 0 auto; }
+        .cat-item { background: white; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; cursor: pointer; }
+        .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f4f4f4; }
+        .add-btn { background: var(--p); color: white; border: none; width: 42px; height: 42px; border-radius: 12px; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .cart-bar { position: fixed; bottom: 20px; left: 15px; right: 15px; background: #231815; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; z-index: 1000; }
+        .checkout-btn { background: var(--gold); color: #231815; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; }
 
-        .checkout-card { background: #fffcf0; border: 1px solid #e0d5b5; padding: 15px; border-radius: 15px; margin-top: 15px; }
-        .total-row { display: flex; justify-content: space-between; font-size: 26px; font-weight: 900; color: var(--maroon); margin-bottom: 12px; }
-        
-        .btn-confirm { 
-            width: 100%; background: var(--success); color: white; border: none; 
-            padding: 18px; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
-        }
-
-        /* تنسيق الطباعة الحرارية */
+        /* Receipt Style for Printing */
+        #print-area { display: none; }
         @media print {
-            body * { visibility: hidden; }
-            #receipt-print, #receipt-print * { visibility: visible; }
-            #receipt-print { position: absolute; left: 0; top: 0; width: 100%; text-align: center; font-family: monospace; }
-        }
-
-        @media (max-width: 900px) {
-            .app-main { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; border-top: 2px solid #eee; }
+            body * { display: none !important; }
+            #print-area { display: block !important; width: 80mm; padding: 5mm; background: white; font-family: 'Courier New', Courier, monospace; direction: rtl; }
+            .receipt-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5mm; margin-bottom: 5mm; }
+            .receipt-row { display: flex; justify-content: space-between; font-size: 12pt; margin-bottom: 2mm; }
+            .total-area { border-top: 1px dashed #000; margin-top: 5mm; padding-top: 5mm; font-weight: bold; font-size: 14pt; }
+            .receipt-footer { text-align: center; margin-top: 10mm; font-size: 10pt; }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div>
-        <h2 style="font-size: 20px; letter-spacing: 1px;">شاهي وليف</h2>
-    </div>
-    <div id="status" style="font-size: 13px; color: var(--gold);">نظام البيع الذكي</div>
-</header>
+<div id="splash"><div class="loader"></div><h3 style="color:var(--p); margin-top:15px;">شاهي وليف</h3></div>
 
-<div class="app-main">
-    <div class="products-section">
-        <div class="tabs-container" id="tabs">
-            <!-- الفئات تظهر هنا -->
-        </div>
-        <div class="products-grid" id="grid">
-            <!-- المنتجات تظهر هنا -->
-        </div>
+<div id="order-type-overlay">
+    <div class="type-box" id="step-1">
+        <div style="font-size: 40px;">🍃</div>
+        <h2>أهلاً بك</h2>
+        <button class="btn-opt" onclick="showLocal()">🍽️ محلي</button>
+        <button class="btn-opt" onclick="showTakeaway()">🥡 سفري</button>
     </div>
-
-    <div class="sidebar">
-        <input type="tel" id="phone" placeholder="رقم جوال العميل..." 
-               style="width:100%; padding:12px; border-radius:12px; border:2px solid #f0f0f0; margin-bottom:15px; text-align:center; font-size: 16px;">
-        
-        <div class="cart-list" id="cartBody">
-            <p style="text-align:center; color:#aaa; margin-top:50px;">السلة فارغة</p>
-        </div>
-        
-        <div class="checkout-card">
-            <div class="total-row">
-                <span>الإجمالي</span>
-                <span id="totalTxt">0.00</span>
-            </div>
-            <button class="btn-confirm" onclick="checkout()">إتمام وطباعة ✅</button>
-        </div>
+    <div class="type-box" id="local-in" style="display:none;">
+        <select id="tbl-sel" style="width:100%; padding:15px; margin:15px 0;"><option value="1">طاولة 1</option><option value="2">طاولة 2</option></select>
+        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('محلي')">دخول</button>
+    </div>
+    <div class="type-box" id="take-in" style="display:none;">
+        <input type="tel" id="phone-in" placeholder="05xxxxxxxx" style="width:100%; padding:15px; margin:15px 0; text-align:center;">
+        <button class="btn-opt" style="background:var(--p); color:white;" onclick="startApp('سفري')">دخول</button>
     </div>
 </div>
 
-<!-- الفاتورة (تظهر عند الطباعة فقط) -->
-<div id="receipt-print" style="display:none;">
-    <h2 style="margin-bottom:5px;">شاهي وليف</h2>
-    <p>فاتورة مبيعات</p>
-    <p id="print-date" style="font-size:12px;"></p>
-    <hr style="border-top:1px dashed #000">
-    <div id="print-items" style="padding: 10px 0;"></div>
-    <hr style="border-top:1px dashed #000">
-    <h3 id="print-total"></h3>
-    <p>شكراً لزيارتكم</p>
+<div id="main-ui" style="display:none;">
+    <header><h1>شاهي وليف</h1><div id="info-tag" style="color:var(--gold);"></div></header>
+    <div id="categories-view">
+        <div class="cat-grid">
+            <div class="cat-item" onclick="openCategory('tea')">☕ شاي</div>
+            <div class="cat-item" onclick="openCategory('karak')">🍯 كرك</div>
+            <div class="cat-item" onclick="openCategory('bakery')">🥐 مخبوزات</div>
+            <div class="cat-item" onclick="openCategory('games')">🎲 ألعاب</div>
+        </div>
+    </div>
+    <div id="products-view" style="display:none;">
+        <div onclick="backToCategories()" style="padding:15px; cursor:pointer; color:var(--p);">⬅️ العودة</div>
+        <div id="products-list"></div>
+    </div>
+    <div class="cart-bar">
+        <div id="total">0.00 ﷼</div>
+        <button class="checkout-btn" onclick="sendOrder()">طلب وطباعة الفاتورة 🖨️</button>
+    </div>
 </div>
+
+<!-- منطقة الطباعة المخفية -->
+<div id="print-area"></div>
 
 <script>
-    // تكوين قاعدة البيانات (Firebase)
     const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let allProducts = [], cart = [], currentCat = '';
+    let oType = "", oDetail = "", cart = [], total = 0, allProducts = {};
 
-    // 1. جلب المنتجات وتوليد الفئات تلقائياً
-    db.ref('products').on('value', snap => {
-        const data = snap.val();
-        allProducts = data ? Object.keys(data).map(k => ({id: k, ...data[k]})) : [];
-        const cats = [...new Set(allProducts.map(p => p.cat))];
-        if (!currentCat && cats.length > 0) currentCat = cats[0];
-        renderTabs(cats);
-        renderGrid();
-    });
+    window.onload = () => { setTimeout(() => { document.getElementById('splash').style.display='none'; }, 1000); loadData(); };
 
-    function renderTabs(cats) {
-        document.getElementById('tabs').innerHTML = cats.map(c => `
-            <button class="tab ${c === currentCat ? 'active' : ''}" onclick="filterCat('${c}')">${c}</button>
-        `).join('');
-    }
-
-    function filterCat(c) {
-        currentCat = c;
-        renderTabs([...new Set(allProducts.map(p => p.cat))]);
-        renderGrid();
-    }
-
-    function renderGrid() {
-        const filtered = allProducts.filter(p => p.cat === currentCat);
-        document.getElementById('grid').innerHTML = filtered.map(p => `
-            <div class="p-card" onclick="addToCart('${p.id}', '${p.name}', ${p.price})">
-                <b>${p.name}</b>
-                <span>${parseFloat(p.price).toFixed(2)} ﷼</span>
+    function showLocal() { document.getElementById('step-1').style.display='none'; document.getElementById('local-in').style.display='block'; }
+    function showTakeaway() { document.getElementById('step-1').style.display='none'; document.getElementById('take-in').style.display='block'; }
+    function startApp(t) { oType = t; oDetail = (t === 'محلي') ? document.getElementById('tbl-sel').value : document.getElementById('phone-in').value; document.getElementById('order-type-overlay').style.display='none'; document.getElementById('main-ui').style.display='block'; document.getElementById('info-tag').innerText = `${t}: ${oDetail}`; }
+    function loadData() { db.ref('products').on('value', snap => { allProducts = snap.val() || {}; }); }
+    
+    function openCategory(catKey) {
+        document.getElementById('categories-view').style.display = 'none';
+        document.getElementById('products-view').style.display = 'block';
+        const filtered = Object.keys(allProducts).map(id => ({id, ...allProducts[id]})).filter(p => p.cat === catKey);
+        document.getElementById('products-list').innerHTML = filtered.map(p => `
+            <div class="product-card">
+                <div><b>${p.name}</b><br><span>${p.price} ﷼</span></div>
+                <button class="add-btn" onclick="add('${p.name}', ${p.price})">+</button>
             </div>
         `).join('');
     }
 
-    // 2. إدارة السلة
-    function addToCart(id, name, price) {
-        const existing = cart.find(i => i.id === id);
-        if (existing) {
-            existing.qty++;
-        } else {
-            cart.push({id, name, price, qty: 1});
-        }
-        updateUI();
-    }
+    function backToCategories() { document.getElementById('categories-view').style.display = 'block'; document.getElementById('products-view').style.display = 'none'; }
+    function add(n, p) { cart.push({name: n, price: p}); total += p; document.getElementById('total').innerText = total.toFixed(2) + " ﷼"; }
 
-    function changeQty(index, delta) {
-        cart[index].qty += delta;
-        if (cart[index].qty <= 0) cart.splice(index, 1);
-        updateUI();
-    }
-
-    function updateUI() {
-        const body = document.getElementById('cartBody');
-        let total = 0;
+    function sendOrder() {
+        if(!cart.length) return alert("السلة فارغة");
+        const inv = Math.floor(Math.random()*9000)+1000;
         
-        if (cart.length === 0) {
-            body.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:50px;">السلة فارغة</p>';
-            document.getElementById('totalTxt').innerText = "0.00";
-            return;
-        }
-
-        body.innerHTML = cart.map((item, i) => {
-            total += item.price * item.qty;
-            return `
-                <div class="cart-row">
-                    <div class="cart-header">
-                        <span>${item.name}</span>
-                        <span>${(item.price * item.qty).toFixed(2)}</span>
-                    </div>
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="changeQty(${i}, -1)">-</button>
-                        <span style="font-weight:bold;">${item.qty}</span>
-                        <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        document.getElementById('totalTxt').innerText = total.toFixed(2) + " ﷼";
+        // إرسال للديتابيس
+        db.ref('orders/'+inv).set({
+            inv, type: oType, detail: oDetail, items: cart, total: total.toFixed(2),
+            status: 'pending', time: new Date().toLocaleTimeString('ar-SA')
+        }).then(() => {
+            generateReceipt(inv);
+            window.print(); // تفعيل الطباعة فوراً
+            location.reload(); // إعادة تصفير الصفحة للطلب القادم
+        });
     }
 
-    // 3. إتمام المبيعة والطباعة
-    async function checkout() {
-        const total = parseFloat(document.getElementById('totalTxt').innerText);
-        if (total <= 0) return alert("الرجاء إضافة منتجات للسلة");
+    function generateReceipt(inv) {
+        const printArea = document.getElementById('print-area');
+        let itemsHtml = cart.map(item => `
+            <div class="receipt-row">
+                <span>${item.name}</span>
+                <span>${parseFloat(item.price).toFixed(2)}</span>
+            </div>
+        `).join('');
 
-        const saleData = {
-            total,
-            items: cart,
-            phone: document.getElementById('phone').value || "عميل عام",
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-
-        try {
-            await db.ref('sales').push(saleData);
-            
-            // تجهيز الفاتورة للطباعة
-            document.getElementById('print-date').innerText = new Date().toLocaleString('ar-SA');
-            document.getElementById('print-items').innerHTML = cart.map(i => 
-                `<div style="display:flex; justify-content:space-between;"><span>${i.name} x${i.qty}</span><span>${(i.price*i.qty).toFixed(2)}</span></div>`
-            ).join('');
-            document.getElementById('print-total').innerText = "الإجمالي: " + total.toFixed(2) + " ريال";
-            
-            window.print();
-
-            // تصفير السلة
-            cart = [];
-            document.getElementById('phone').value = "";
-            updateUI();
-            alert("تم تسجيل المبيعة بنجاح ✅");
-        } catch (e) {
-            alert("حدث خطأ في الاتصال بقاعدة البيانات");
-        }
+        printArea.innerHTML = `
+            <div class="receipt-header">
+                <h2>شاهي وليف</h2>
+                <p>رقم الفاتورة: #${inv}</p>
+                <p>التاريخ: ${new Date().toLocaleDateString('ar-SA')}</p>
+                <p>النوع: ${oType} - ${oDetail}</p>
+            </div>
+            <div class="receipt-body">
+                ${itemsHtml}
+            </div>
+            <div class="total-area">
+                <div class="receipt-row">
+                    <span>الإجمالي</span>
+                    <span>${total.toFixed(2)} ﷼</span>
+                </div>
+            </div>
+            <div class="receipt-footer">
+                <p>شكراً لزيارتكم!</p>
+            </div>
+        `;
     }
 </script>
 </body>
