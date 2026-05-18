@@ -4,90 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>منيو شاهي وليف | فهد مرزوق المخلفي</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
-        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; --ready: #28a745; }
+        :root { --p: #630000; --gold: #c5a059; --bg: #f8f9fa; --ready: #28a745; --danger: #dc3545; }
         body { background: var(--bg); margin: 0; font-family: 'Segoe UI', sans-serif; color: #333; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
 
-        /* 1. اللوحة الترحيبية بالعربي */
-        #welcome-screen { position: fixed; inset: 0; background: var(--p); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease; }
-        .welcome-logo { width: 120px; height: 120px; border: 3px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1.2em; font-weight: 900; animation: pulse 2s infinite; text-align: center; line-height: 1.2; }
-        .version-text { color: rgba(197, 160, 89, 0.6); font-size: 10px; margin-top: 15px; font-family: monospace; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0px var(--gold); } 50% { transform: scale(1.05); box-shadow: 0 0 20px var(--gold); } }
+        /* 1. الشاشة الترحيبية: كتابة متحركة سينمائية */
+        #welcome-screen { position: fixed; inset: 0; background: var(--p); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease; padding: 20px; text-align: center; }
+        .typing-text { font-size: 2.3em; font-weight: 900; color: var(--gold); border-left: 3px solid var(--gold); white-space: nowrap; overflow: hidden; width: 0; animation: typing 1.5s steps(10, end) forwards, blink-caret 0.75s step-end infinite; margin-bottom: 10px; letter-spacing: 1px; }
+        .sub-typing-text { font-size: 1.1em; color: white; opacity: 0; animation: fadeIn 1s ease 1.3s forwards; font-weight: 300; }
+        @keyframes typing { from { width: 0 } to { width: 170px; } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--gold); } }
+        @keyframes fadeIn { to { opacity: 0.85; } }
 
-        /* 2. هيدر الاسم في المنتصف */
+        /* 2. شاشة عرض صور المنتجات الترحيبية */
+        #intro-slider-screen { position: fixed; inset: 0; background: #1a1a1a; z-index: 9998; display: none; flex-direction: column; justify-content: space-between; align-items: center; padding: 30px 20px; box-sizing: border-box; }
+        .slider-container { position: relative; width: 100%; max-width: 400px; height: 65vh; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid var(--gold); background: #222; }
+        .slide-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease-in-out; }
+        .slide-img.active { opacity: 1; }
+        .slider-dots { display: flex; gap: 8px; justify-content: center; margin-top: 15px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: 0.3s; }
+        .dot.active { background: var(--gold); width: 25px; border-radius: 10px; }
+        .btn-start-order { background: var(--gold); color: #1a1a1a; border: none; width: 100%; max-width: 350px; padding: 16px; border-radius: 15px; font-size: 1.2em; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(197, 160, 89, 0.4); transition: 0.2s; margin-bottom: 10px; }
+        .btn-start-order:active { transform: scale(0.98); }
+
         header { background: white; padding: 20px 15px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         header h1 { color: var(--p); margin: 0; font-size: 1.8em; font-weight: 900; }
 
-        /* 3. بطاقة حالة الطلب المبهرة */
-        #order-status-card { 
-            display: none; background: #1a1a1a; margin: 15px; border-radius: 20px; 
-            padding: 20px; color: white; position: relative; overflow: hidden;
-            border: 1px solid var(--gold); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .status-glow { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(197, 160, 89, 0.1) 0%, transparent 70%); animation: rotateGlow 10s linear infinite; }
-        @keyframes rotateGlow { 100% { transform: rotate(360deg); } }
-        .order-info-grid { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; }
-        .order-number-box { background: var(--p); padding: 8px 12px; border-radius: 12px; border: 1px solid var(--gold); }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 8px; }
-        .dot-pending { background: #ffc107; box-shadow: 0 0 10px #ffc107; animation: blink 1s infinite; }
-        .dot-ready { background: var(--ready); box-shadow: 0 0 15px var(--ready); }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* شاشة العزل الكاملة عند وجود طلب نشط */
+        #active-order-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; flex-direction: column; justify-content: center; padding: 20px; box-sizing: border-box; }
 
-        /* 4. نظام التحميل لمنع الشاشة البيضاء */
-        .loader-container { text-align: center; padding: 60px 20px; color: var(--p); }
-        .spinner { width: 45px; height: 45px; border: 3px solid rgba(197, 160, 89, 0.2); border-top: 3px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* البطاقة التفاعلية المبهرة لتفاصيل وحالة الطلب */
+        .order-status-card-box { background: linear-gradient(145deg, #1e1e1e, #111); width: 100%; max-width: 420px; margin: 0 auto; border-radius: 22px; padding: 25px 20px; color: white; border: 2px solid var(--gold); box-shadow: 0 15px 35px rgba(197, 160, 89, 0.3); position: relative; box-sizing: border-box; }
+        .card-header-status { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255,255,255,0.15); padding-bottom: 12px; margin-bottom: 12px; }
+        .badge-inv { background: var(--p); color: var(--gold); border: 1px solid var(--gold); padding: 5px 12px; border-radius: 10px; font-weight: bold; font-size: 1.1em; }
+        .status-badge-text { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 0.95em; }
+        .pulse-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .pulse-pending { background: #ffc107; box-shadow: 0 0 10px #ffc107; animation: pulseGlow 1.5s infinite; }
+        .pulse-ready { background: var(--ready); box-shadow: 0 0 10px var(--ready); animation: pulseGlow 1.5s infinite; }
+        @keyframes pulseGlow { 0% { transform: scale(0.9); opacity: 0.6; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.6; } }
+        
+        .items-summary-list { max-height: 180px; overflow-y: auto; padding-right: 5px; font-size: 0.95em; margin-bottom: 15px; }
+        .summary-row { display: flex; justify-content: space-between; color: #ccc; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; }
+        .card-action-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-action-card { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.95em; transition: 0.2s; text-align: center; }
+        .btn-done-card { background: var(--ready); color: white; }
+        .btn-cancel-card { background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid var(--danger); }
+        .btn-action-card:active { transform: scale(0.97); }
 
-        /* 5. تصميم المنيو والمنتجات والملاحظات */
+        /* مدخلات رقم الجوال المتجاوبة للطلب السفري */
+        .phone-input-wrap { background: #f9f9f9; padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid #ddd; text-align: right; }
+        .phone-field { width: 100%; border: 1px solid #ccc; padding: 12px; border-radius: 8px; box-sizing: border-box; text-align: center; font-size: 1.1em; font-weight: bold; letter-spacing: 2px; outline: none; margin-top: 6px; }
+        .phone-field:focus { border-color: var(--p); }
+
+        /* تصميم المنيو للأقسام والمنتجات */
         .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .cat-item { background: white; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; cursor: pointer; font-weight: bold; }
         
-        .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 20px; border: 1px solid #f0f0f0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .product-card { background: white; margin: 10px 15px; padding: 15px; border-radius: 20px; border: 1px solid #f0f0f0; }
         .prod-row { display: flex; justify-content: space-between; align-items: center; }
         .controls { display: flex; align-items: center; gap: 12px; }
         .btn-qty { width: 34px; height: 34px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
         .btn-minus { background: #eee; } .btn-plus { background: var(--p); color: white; }
-        
-        /* حقل الملاحظات المستعاد */
         .note-input { width: 100%; border: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 0.85em; margin-top: 10px; border-right: 3px solid var(--gold); outline: none; box-sizing: border-box; }
 
-        .cart-bar { position: fixed; bottom: 65px; left: 15px; right: 15px; background: #231815; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; z-index: 1000; }
+        .cart-bar { position: fixed; bottom: 30px; left: 15px; right: 15px; background: #231815; color: white; padding: 15px 20px; display: none; justify-content: space-between; align-items: center; border-radius: 20px; z-index: 1000; }
         .checkout-btn { background: var(--gold); color: #231815; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
 
-        footer { background: #fff; text-align: center; padding: 15px; font-size: 11px; color: #888; border-top: 1px solid #eee; margin-top: auto; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background: white; width: 100%; max-width: 400px; border-radius: 25px; padding: 20px; text-align: center; }
-        .btn-opt { display: block; width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid var(--p); border-radius: 15px; font-weight: bold; cursor: pointer; background: white; color: var(--p); }
+        /* شاشات الأوفرلاي */
+        .full-overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .modal-box { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; box-sizing: border-box; }
+        .btn-opt { display: block; width: 100%; padding: 16px; margin: 10px 0; border: 2px solid var(--p); border-radius: 15px; font-weight: bold; cursor: pointer; background: white; color: var(--p); font-size: 1.1em; }
+        
+        .table-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; max-height: 350px; overflow-y: auto; padding: 5px; }
+        .table-item { border: 2px solid #eee; border-radius: 15px; padding: 15px 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s; }
+        .table-item.selected { background: var(--gold); border-color: var(--gold); color: white; }
+        .table-item span { font-weight: bold; color: var(--p); }
+        .table-item.selected span { color: white; }
+
+        footer { text-align: center; padding: 15px; font-size: 11px; color: #888; margin-top: auto; }
+        .loader-container { text-align: center; padding: 60px 20px; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #eee; border-top: 3px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div id="welcome-screen">
-    <div class="welcome-logo">شاهي<br>وليف</div>
-    <div class="version-text">V1.5.0</div>
+    <div class="typing-text">شاهي وليف</div>
+    <div class="sub-typing-text">رشفة أصالة .. في كل وقت</div>
+</div>
+
+<div id="intro-slider-screen">
+    <div style="text-align: center; color: white; margin-top: 5px;">
+        <h2 style="color: var(--gold); margin: 0; font-size: 1.6em;">شاهي وليف</h2>
+        <p style="opacity: 0.8; margin: 3px 0 10px; font-size: 0.85em;">لحظات الأصالة في كل رشفة وقرمشة</p>
+    </div>
+    
+    <div class="slider-container" id="slider-images-wrap"></div>
+    <div class="slider-dots" id="slider-dots-wrap"></div>
+
+    <button class="btn-start-order" onclick="exitSliderToShowOptions()">اضغط للدخول للمنيو ☕</button>
+</div>
+
+<div id="order-type-overlay" class="full-overlay" style="display:none;">
+    <div class="modal-box">
+        <h2 style="color:var(--p); margin-top:0;">مرحباً بك في وليف</h2>
+        <p style="color:#666; font-size:0.9em;">كيف ترغب في استلام طلبك اليوم؟</p>
+        <button class="btn-opt" onclick="goToTableSelection()">🍽️ طلب محلي (طاولة)</button>
+        <button class="btn-opt" onclick="setTakeaway()">🥡 طلب سفري</button>
+    </div>
+</div>
+
+<div id="table-selector-overlay" class="full-overlay" style="display:none;">
+    <div class="modal-box">
+        <h3 style="color:var(--p); margin:0;">اختر رقم الطاولة</h3>
+        <p style="color:#666; font-size:0.8em;">يرجى تحديد موقع جلوسك</p>
+        <div class="table-grid" id="tables-container"></div>
+        <button onclick="backToType()" style="margin-top:15px; background:none; border:none; color:var(--p); font-weight:bold; cursor:pointer;">⬅️ العودة للخلف</button>
+    </div>
+</div>
+
+<div id="active-order-overlay">
+    <div class="order-status-card-box">
+        <div class="card-header-status">
+            <div class="badge-inv">رقم الطلب: <span id="st-id">0000</span></div>
+            <div class="status-badge-text">
+                <span id="st-dot" class="pulse-dot"></span>
+                <span id="st-text">جاري التحميل...</span>
+            </div>
+        </div>
+        <div id="st-location" style="font-size: 0.88em; color: var(--gold); margin-bottom: 12px; font-weight: bold;"></div>
+        
+        <div class="items-summary-list" id="st-items-list"></div>
+        
+        <div style="display:flex; justify-content:space-between; font-weight:bold; border-top:1px dashed rgba(255,255,255,0.15); padding-top:12px; font-size:1em;">
+            <span>إجمالي الحساب:</span>
+            <span id="st-total" style="color:var(--gold);">0.00 ﷼</span>
+        </div>
+        
+        <div class="card-action-btns">
+            <button class="btn-action-card btn-done-card" onclick="dismissOrderCard(false)">✔ تم استلام طلبي</button>
+            <button class="btn-action-card btn-cancel-card" onclick="cancelActiveOrderFromServer()">❌ إلغاء الطلب</button>
+        </div>
+    </div>
 </div>
 
 <div id="main-ui" style="display:none; flex:1; flex-direction: column;">
-    <header><h1>شاهي وليف</h1><div id="info-tag" style="color:var(--gold); font-size:12px; font-weight:bold;"></div></header>
-
-    <div id="order-status-card">
-        <div class="status-glow"></div>
-        <div class="order-info-grid">
-            <div class="order-number-box">
-                <small style="display:block; font-size:9px; opacity:0.8;">رقم الطلب</small>
-                <b id="st-id" style="font-size:1.4em; color:var(--gold);">0000</b>
-            </div>
-            <div style="text-align: left; display:flex; align-items:center;">
-                <div style="text-align: right; margin-left:10px;">
-                    <span id="st-text" style="font-weight: bold; display: block; font-size:0.9em;">جاري المعالجة...</span>
-                    <small id="st-time" style="opacity: 0.6; font-size: 10px;"></small>
-                </div>
-                <div id="st-dot" class="status-dot"></div>
-            </div>
+    <header>
+        <h1>شاهي وليف</h1>
+        <div id="info-tag" style="color:var(--gold); font-size:12px; font-weight:bold; margin-top:5px;"></div>
+        
+        <div id="phone-verification-area" class="phone-input-wrap" style="display: none;">
+            <label style="font-weight: bold; color: var(--p); font-size: 0.9em;">📞 رقم الجوال مطلوب لإتمام الطلب السفري:</label>
+            <input type="tel" id="cust-phone" class="phone-field" placeholder="05xxxxxxxx" maxlength="10">
         </div>
-    </div>
+    </header>
     
     <div id="categories-view"><div class="cat-grid" id="cat-list"></div></div>
     
@@ -96,58 +169,196 @@
         <div id="products-list"></div>
     </div>
 
-    <div class="cart-bar">
+    <div class="cart-bar" id="cart-bar-ui">
         <div id="total-display" style="font-weight:bold; font-size:1.1em;">0.00 ﷼</div>
         <button class="checkout-btn" onclick="openReview()">إرسال الطلب</button>
     </div>
     <footer>جميع الحقوق محفوظة © <b>فهد مرزوق المخلفي</b> | 2026م</footer>
 </div>
 
-<div id="order-type-overlay" style="position:fixed; inset:0; background:var(--p); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;">
-    <div class="modal-box">
-        <h2 style="color:var(--p)">مرحباً بك في وليف</h2>
-        <button class="btn-opt" onclick="oType='محلي'; oDetail='طاولة 1'; startApp()">🍽️ طلب محلي</button>
-        <button class="btn-opt" onclick="oType='سفري'; oDetail='جوال'; startApp()">🥡 طلب سفري</button>
-    </div>
-</div>
-
 <script>
     let allProducts = {}, cart = {}, oType = "", oDetail = "";
+    let currentSlideIndex = 0;
+    let sliderTimer = null;
+
     const firebaseConfig = { databaseURL: "https://shahi-walif-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     window.onload = () => {
+        setupIntroSlider(); 
+
         setTimeout(() => {
             document.getElementById('welcome-screen').style.opacity = 0;
-            setTimeout(() => document.getElementById('welcome-screen').style.display = 'none', 600);
-        }, 1500);
-        checkActiveOrder();
+            setTimeout(() => {
+                document.getElementById('welcome-screen').style.display = 'none';
+                
+                // فحص ما إذا كان هناك طلب معلق قبل فتح المنيو أو السلايدر
+                const lastId = localStorage.getItem('last_wlif_order');
+                if(lastId) {
+                    checkActiveOrder(); // يتكفل بإظهار شاشة العزل مباشرة وحجب كل شيء
+                } else {
+                    document.getElementById('intro-slider-screen').style.display = 'flex';
+                    startSliderAutoPlay(); 
+                }
+            }, 600);
+        }, 2200);
+
         db.ref('products').on('value', s => { allProducts = s.val() || {}; renderCats(); });
+        generateTables(12);
     };
 
+    function setupIntroSlider() {
+        const imagesWrap = document.getElementById('slider-images-wrap');
+        const dotsWrap = document.getElementById('slider-dots-wrap');
+        
+        imagesWrap.innerHTML = `
+            <img src="https://l.top4top.io/p_3790y2shq0.png" class="slide-img active" alt="خلية نحل شاهي وليف">
+            <img src="https://k.top4top.io/p_379011jex0.png" class="slide-img" alt="بسكويت وشاهي وليف">
+        `;
+
+        dotsWrap.innerHTML = `
+            <div class="dot active" onclick="jumpToSlide(0)"></div>
+            <div class="dot" onclick="jumpToSlide(1)"></div>
+        `;
+    }
+
+    function startSliderAutoPlay() {
+        sliderTimer = setInterval(() => {
+            let nextIndex = (currentSlideIndex + 1) % 2;
+            jumpToSlide(nextIndex);
+        }, 3500); 
+    }
+
+    function jumpToSlide(idx) {
+        currentSlideIndex = idx;
+        const images = document.querySelectorAll('.slide-img');
+        const dots = document.querySelectorAll('.dot');
+        
+        images.forEach((img, i) => { if(img) img.classList.toggle('active', i === idx); });
+        dots.forEach((dot, i) => { if(dot) dot.classList.toggle('active', i === idx); });
+    }
+
+    function exitSliderToShowOptions() {
+        clearInterval(sliderTimer); 
+        document.getElementById('intro-slider-screen').style.opacity = 0;
+        setTimeout(() => {
+            document.getElementById('intro-slider-screen').style.display = 'none';
+            document.getElementById('order-type-overlay').style.display = 'flex';
+        }, 400);
+    }
+
+    function generateTables(count) {
+        const container = document.getElementById('tables-container');
+        let html = '';
+        for (let i = 1; i <= count; i++) {
+            html += `<div class="table-item" id="tbl-${i}" onclick="selectTable(${i})"><i>🪑</i><span>طاولة ${i}</span></div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    function goToTableSelection() {
+        oType = "محلي";
+        document.getElementById('order-type-overlay').style.display = 'none';
+        document.getElementById('table-selector-overlay').style.display = 'flex';
+    }
+
+    function selectTable(num) { 
+        document.querySelectorAll('.table-item').forEach(el => el.classList.remove('selected'));
+        document.getElementById(`tbl-${num}`).classList.add('selected');
+        oDetail = "طاولة " + num; 
+        setTimeout(() => { startApp(); }, 300); 
+    }
+    
+    function setTakeaway() { 
+        oType = "سفري"; 
+        oDetail = "استلام من الكاونتر"; 
+        startApp(); 
+    }
+    
+    function backToType() { document.getElementById('table-selector-overlay').style.display = 'none'; document.getElementById('order-type-overlay').style.display = 'flex'; }
+
+    function startApp(){ 
+        document.getElementById('order-type-overlay').style.display='none'; 
+        document.getElementById('table-selector-overlay').style.display='none'; 
+        document.getElementById('main-ui').style.display='flex'; 
+        document.getElementById('info-tag').innerText = "نوع الطلب: " + oType + " (" + oDetail + ")"; 
+        
+        // إظهار أو إخفاء حقل الجوال حسب الخيار
+        if(oType === "سفري") {
+            document.getElementById('phone-verification-area').style.display = 'block';
+        } else {
+            document.getElementById('phone-verification-area').style.display = 'none';
+        }
+    }
+
+    // فحص مستمر وبلوك كامل لحجب الموقع وإبراز بطاقة الطلب فقط
     function checkActiveOrder() {
         const lastId = localStorage.getItem('last_wlif_order');
         if(lastId) {
             db.ref('orders/' + lastId).on('value', snap => {
                 const order = snap.val();
                 if(order) {
-                    document.getElementById('order-status-card').style.display = 'block';
+                    // حجب المنيو بالكامل وإظهار الشاشة المعزولة للبطاقة
+                    document.getElementById('main-ui').style.display = 'none';
+                    document.getElementById('active-order-overlay').style.display = 'flex';
+                    
                     document.getElementById('st-id').innerText = order.inv;
-                    document.getElementById('st-time').innerText = new Date(order.timestamp).toLocaleTimeString('ar-SA');
+                    document.getElementById('st-location').innerText = `📍 الاتجاه: ${order.type} (${order.detail}) ${order.phone ? `| 📞 ${order.phone}` : ''}`;
+                    document.getElementById('st-total').innerText = order.total + " ﷼";
+                    
+                    if(order.items && Array.isArray(order.items)){
+                        document.getElementById('st-items-list').innerHTML = order.items.map(i => `
+                            <div class="summary-row">
+                                <span>• ${i.name} × ${i.qty} ${i.note ? `<small style="color:var(--gold)">(${i.note})</small>`:''}</span>
+                                <span>${(i.price * i.qty).toFixed(2)} ﷼</span>
+                            </div>
+                        `).join('');
+                    }
+
                     const dot = document.getElementById('st-dot');
                     const txt = document.getElementById('st-text');
+                    
                     if(order.status === 'pending') {
-                        dot.className = "status-dot dot-pending";
-                        txt.innerText = "تم استلام طلبك ⏳";
+                        dot.className = "pulse-dot pulse-pending";
+                        txt.innerText = "قيد التجهيز ⏳";
                         txt.style.color = "#ffc107";
                     } else {
-                        dot.className = "status-dot dot-ready";
-                        txt.innerText = "طلبك جاهز ✅";
+                        dot.className = "pulse-dot pulse-ready";
+                        txt.innerText = "طلبك جاهز تماماً! ✅";
                         txt.style.color = "var(--ready)";
                     }
+                } else {
+                    dismissOrderCard(true);
                 }
             });
+        }
+    }
+
+    // فك حجب المنيو وإخفاء بطاقة الطلب عند الإنهاء
+    function dismissOrderCard(quiet = false) {
+        if(!quiet && !confirm("هل تأكدت من استلام طلبك وإغلاق البطاقة الحالية لتصفح المنيو من جديد؟")) return;
+        const lastId = localStorage.getItem('last_wlif_order');
+        if(lastId) db.ref('orders/' + lastId).off(); 
+        localStorage.removeItem('last_wlif_order');
+        
+        // إخفاء العزل وإرجاع الصفحة الرئيسية خالية وجاهزة للطلب الجديد
+        document.getElementById('active-order-overlay').style.display = 'none';
+        location.reload(); 
+    }
+
+    // كنسلة الطلب وحذفه نهائياً من سيرفر المراقبة (الفايربيس)
+    function cancelActiveOrderFromServer() {
+        if(confirm("هل أنت متأكد تماماً من إلغاء هذا الطلب وحذفه نهائياً من لوحة المراقبة؟")) {
+            const lastId = localStorage.getItem('last_wlif_order');
+            if(lastId) {
+                db.ref('orders/' + lastId).remove().then(() => {
+                    localStorage.removeItem('last_wlif_order');
+                    document.getElementById('active-order-overlay').style.display = 'none';
+                    alert("🗑 تم إلغاء طلبك وحذفه بنجاح.");
+                    location.reload();
+                });
+            }
         }
     }
 
@@ -162,7 +373,7 @@
         document.getElementById('categories-view').style.display = 'none';
         document.getElementById('products-view').style.display = 'block';
         const list = document.getElementById('products-list');
-        list.innerHTML = `<div class="loader-container"><div class="spinner"></div><p style="font-weight:bold;">جاري تحميل الأصناف...</p></div>`;
+        list.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
         
         setTimeout(() => {
             const ids = Object.keys(allProducts).filter(id => String(allProducts[id].cat).trim() === k);
@@ -178,10 +389,10 @@
                             <button class="btn-qty btn-plus" onclick="updQty('${id}',1)">+</button>
                         </div>
                     </div>
-                    <input type="text" class="note-input" id="note-${id}" placeholder="إضافة ملاحظة (سكر، بدون حليب...)" oninput="updNote('${id}',this.value)" value="${cart[id]?cart[id].note:''}">
+                    <input type="text" class="note-input" id="note-${id}" placeholder="إضافة ملاحظة..." oninput="updNote('${id}',this.value)" value="${cart[id]?cart[id].note:''}">
                 </div>`;
             }).join('');
-        }, 600);
+        }, 300);
     }
 
     function updQty(id, c) {
@@ -194,24 +405,50 @@
         }
     }
     function updNote(id, v){ if(cart[id]) cart[id].note = v; }
-    function updateUI() { let t=0; Object.values(cart).forEach(i=>t+=i.price*i.qty); document.getElementById('total-display').innerText = t.toFixed(2)+" ﷼"; }
+    function updateUI() { 
+        let t=0; Object.values(cart).forEach(i=>t+=i.price*i.qty); 
+        document.getElementById('total-display').innerText = t.toFixed(2)+" ﷼"; 
+        document.getElementById('cart-bar-ui').style.display = t > 0 ? 'flex' : 'none';
+    }
     function backToCategories() { document.getElementById('categories-view').style.display='block'; document.getElementById('products-view').style.display='none'; }
-    function startApp(){ document.getElementById('order-type-overlay').style.display='none'; document.getElementById('main-ui').style.display='flex'; document.getElementById('info-tag').innerText = oType + " | " + oDetail; }
     
     function openReview() {
-        const items = Object.values(cart); if(!items.length) return alert("الرجاء اختيار أصناف أولاً");
-        confirmAndSend();
-    }
+        let userPhone = "";
+        
+        // التحقق الإجباري من رقم الجوال إذا كان الطلب سفري
+        if(oType === "سفري") {
+            const phoneInput = document.getElementById('cust-phone').value.trim();
+            if(!phoneInput || phoneInput.length < 10 || !/^05\d{8}$/.test(phoneInput)) {
+                alert("🚨 عذراً! يجب إدخال رقم جوال سعودي صحيح مكون من 10 أرقام ويبدأ بـ 05 لإتمام الطلب السفري.");
+                document.getElementById('cust-phone').focus();
+                return;
+            }
+            userPhone = phoneInput;
+        }
 
-    function confirmAndSend() {
-        const inv = Math.floor(Math.random()*9000)+1000;
-        let t=0; Object.values(cart).forEach(i=>t+=i.price*i.qty);
-        const data = { inv, type:oType, detail:oDetail, items:Object.values(cart), total:t.toFixed(2), status:'pending', timestamp:Date.now() };
-        db.ref('orders/'+inv).set(data).then(() => {
-            localStorage.setItem('last_wlif_order', inv);
-            alert("✅ تم إرسال طلبك بنجاح! رقم الطلب: " + inv);
-            location.reload(); 
-        });
+        if(confirm("تأكيد إرسال الطلب النهائي؟")) {
+            const inv = Math.floor(Math.random()*9000)+1000;
+            let t=0; Object.values(cart).forEach(i=>t+=i.price*i.qty);
+            
+            const data = { 
+                inv, 
+                type: oType, 
+                detail: oDetail, 
+                phone: userPhone,
+                items: Object.values(cart), 
+                total: t.toFixed(2), 
+                status: 'pending', 
+                timestamp: Date.now() 
+            };
+            
+            db.ref('orders/'+inv).set(data).then(() => {
+                localStorage.setItem('last_wlif_order', inv);
+                cart = {}; 
+                updateUI();
+                alert("✅ تم إرسال طلبك بنجاح! رقم الطلب: " + inv);
+                checkActiveOrder(); // تفعيل العزل والبطاقة فوراً دون انتظار إعادة التحميل
+            });
+        }
     }
 </script>
 </body>
